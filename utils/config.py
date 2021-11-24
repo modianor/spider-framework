@@ -13,7 +13,7 @@ class PluginConfig:
 
     def load_config(self):
         config = configparser.ConfigParser()
-        config.read("/Users/wanghui/pycharm_workspace/spider-framework/plugins.ini", encoding="utf-8")
+        config.read("D:\pycharm_workspace\spider-framework\plugins.ini", encoding="utf-8")
         plugin_section = config['PLUGIN']
         plugins_str = plugin_section.get('plugins')
         policy_modules = plugins_str.split(';')
