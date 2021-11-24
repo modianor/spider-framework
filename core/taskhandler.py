@@ -54,10 +54,13 @@ class FetcherThread(Thread):
                     task = self.policyTaskQueue.getTask()
                     taskType = task.taskType
                     if taskType == 'List':
+                        # (taskStatus,[[urlSign, companyName, creditCode,#{policyId}:{taskType}#]],kibanalog)
                         result = self.fetcherInstance.getList(task)
                     elif taskType == 'Detail':
+                        # (taskStatus,{k1:v1, k2:v2, k3:v3}],kibanalog)
                         result = self.fetcherInstance.getDetail(task)
                     elif taskType == 'Data':
+                        # (taskStatus,{k1:v1, k2:v2, k3:v3}],kibanalog)
                         result = self.fetcherInstance.getData(task)
                 else:
                     pass
