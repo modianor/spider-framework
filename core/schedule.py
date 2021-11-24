@@ -1,58 +1,73 @@
+import logging
 import time
+from threading import Thread
 from typing import Dict
 
-from core.task import Task
+from core.taskhandler import TaskHandler
 from utils.cls_loader import load_object
 from utils.config import PluginConfig
-from utils.single import singleton
-from utils.taskqueue import TaskQueue
+from utils.single import Singleton
+from utils.spiderqueue import TaskQueue, ResultQueue
+from utils.taskpro import randomTask
 
 
-@singleton
+@Singleton
 class Scheduler(object):
-	def __init__(self) -> None:
-		self.run = False
-		self.task_queue = TaskQueue()
-		self.fetchers = dict()
-		self.load_fetchers()
+    def __init__(self) -> None:
+        self.run = True
+        self.taskQueue = TaskQueue()
+        self.resultQueue = ResultQueue()
+        self.fetchers = dict()
+        self.loadFetchers()
+        self.taskHandler = None
+        self.logger = logging.getLogger('spider.scheduler')
 
-	def print_status(self):
-		while True:
-			print('Scheduler is run: ', self.run)
-			time.sleep(1)
+    def getTask(self):
+        self.logger.info('GetTask Thread start')
+        while True:
+            if self.run:
+                if self.taskQueue.size() <= 10:
+                    task = randomTask()
+                    self.taskQueue.put(task)
+                    # time.sleep(.5)
+                else:
+                    # self.logger.warning('task queue is full, wait 30 seconds...')
+                    time.sleep(.5)
 
-	def get_task(self):
-		while True:
-			if self.run:
-				task = Task(
-					taskId=5435354356346,
-					policyId='HEIMAOTOUSU',
-					taskType='List',
-					urlSign='',
-					companyName='',
-					creditCode=''
-				)
+    def handleTask(self):
+        self.logger.info('HandleTask Thread start')
+        self.taskHandler = TaskHandler()
+        while True:
+            if not self.taskQueue.isEmpty():
+                task = self.taskQueue.get()
+                self.tryHandleTask(task)
+            else:
+                time.sleep(1)
 
-				self.task_queue.put(task)
-				time.sleep(1)
+    def tryHandleTask(self, task):
+        while True:
+            flag = self.taskHandler.handle(task)
+            if flag:
+                break
+            else:
+                time.sleep(1)
 
-	def handle_task(self):
-		task = self.task_queue.get()
+    def loadFetchers(self):
+        config = PluginConfig()
+        plugins: Dict = config.plugins
+        for policyId in plugins:
+            module = plugins[policyId]
+            self.fetchers[policyId] = load_object(module)()
 
-		policyId = task.policyId
-		taskType = task.taskType
+    def initSchedule(self):
+        t1 = Thread(target=self.getTask, args=())
+        t2 = Thread(target=self.handleTask, args=())
+        threads = [t1, t2]
 
-		spec_fetcher = self.fetchers[policyId]
-		if taskType == 'List':
-			result = spec_fetcher.getList(task)
-		elif taskType == 'Detail':
-			result = spec_fetcher.getDetail(task)
-		elif taskType == 'Detail':
-			result = spec_fetcher.getData(task)
+        for t in threads:
+            t.setDaemon(False)
+            t.start()
+            time.sleep(0.5)
 
-	def load_fetchers(self):
-		config = PluginConfig()
-		plugins: Dict = config.plugins
-		for policyId in plugins:
-			module = plugins[policyId]
-			self.fetchers[policyId] = load_object(module)()
+        for t in threads:
+            t.join()

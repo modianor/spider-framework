@@ -21,14 +21,14 @@ class FetcherThread(Thread):
         self.policyTaskQueue = policyTaskQueue
         self.threadName = threadName
         self.parentThread = None
-        self.childThreadNum = 1
+        self.childThreadNum = 4
         self.childThreads: List[FetcherThread] = list()
         self.logger.info(f'{self.threadName} start')
 
     def __checkChildThreads__(self):
         if 'ParentThread' in self.threadName:
             if len(self.childThreads) < self.childThreadNum:
-                # 需要添加子线程
+                # 需要添加线程
                 deltaThreadNum = self.childThreadNum - len(self.childThreads)
                 for i in range(deltaThreadNum):
                     childThread = FetcherThread(self.policyId, self.fetcherInstance, self.policyTaskQueue,
@@ -36,9 +36,9 @@ class FetcherThread(Thread):
                     self.childThreads.append(childThread)
                 for childThread in self.childThreads:
                     childThread.start()
-                # self.childThreadNum = 0
+                self.childThreadNum = 2
             else:
-                # 需要删除子线程
+                # 需要删除线程
                 deltaThreadNum = len(self.childThreads) - self.childThreadNum
                 for i in range(deltaThreadNum):
                     childThread = self.childThreads[len(self.childThreads) - 1]
@@ -60,7 +60,6 @@ class FetcherThread(Thread):
                     elif taskType == 'Data':
                         result = self.fetcherInstance.getData(task)
                 else:
-                    pass
                     # self.logger.info(f'{self.threadName} wait 1 second...')
                     time.sleep(1)
             else:
@@ -75,7 +74,7 @@ class TaskHandler(object):
     def __init__(self) -> None:
         self.logger = logging.getLogger('spider.TaskHandler')
         self.policyHandler: Dict[str, FetcherThread] = dict()
-        self.policyTaskQueues: Dict[str, TaskQueue] = dict()
+        self.policyTaskQueue: Dict[str, TaskQueue] = dict()
         self.loadFetchers()
 
     def loadFetchers(self):
@@ -85,20 +84,16 @@ class TaskHandler(object):
             module = plugins[policyId]
             fetcher = load_object(module)()
             taskQueue = TaskQueue()
-            self.policyTaskQueues[policyId] = taskQueue
+            self.policyTaskQueue[policyId] = taskQueue
             self.policyHandler[policyId] = FetcherThread(policyId=policyId, fetcherInstance=fetcher,
                                                          policyTaskQueue=taskQueue,
                                                          threadName=f'{policyId}_ParentThread')
+
         for policyId in self.policyHandler:
             policyIdThread = self.policyHandler[policyId]
             policyIdThread.start()
+            # policyIdThread.join()
 
     def handle(self, task: Task):
         policyId = task.policyId
-        policyTaskQueue = self.policyTaskQueues[policyId]
-        if policyTaskQueue.size() < 10:
-            self.policyTaskQueues[policyId].putTask(task)
-            return True
-        else:
-            self.logger.warning(f'policyId:{policyId} policyTaskQueue is full')
-            return False
+        self.policyTaskQueue[policyId].putTask(task)

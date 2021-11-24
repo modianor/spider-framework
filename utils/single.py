@@ -1,9 +1,23 @@
-def singleton(cls):
-    _instance = {}
+import threading
 
-    def _singleton(*args, **kargs):
-        if cls not in _instance:
-            _instance[cls] = cls(*args, **kargs)
-        return _instance[cls]
 
-    return _singleton
+def synchronized(func):
+    func.__lock__ = threading.Lock()
+
+    def synced_func(*args, **kws):
+        with func.__lock__:
+            return func(*args, **kws)
+
+    return synced_func
+
+
+def Singleton(cls):
+    instances = {}
+
+    @synchronized
+    def get_instance(*args, **kw):
+        if cls not in instances:
+            instances[cls] = cls(*args, **kw)
+        return instances[cls]
+
+    return get_instance

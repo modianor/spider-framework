@@ -1,4 +1,5 @@
-from core.engine import Engine
+from core.spider import Spider
 
 if __name__ == '__main__':
-    Engine().init()
+    spider = Spider()
+    spider.init()
