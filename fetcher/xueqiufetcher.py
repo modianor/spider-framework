@@ -1,11 +1,9 @@
-import logging
 import time
 from random import Random
 
 from core.task import Task
 from fetcher import Fetcher
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(name)s:%(lineno)d] %(levelname)s: %(message)s')
+from utils.log import Logger
 
 
 class XueQiuFetcher(Fetcher):
@@ -13,7 +11,7 @@ class XueQiuFetcher(Fetcher):
     def __init__(self) -> None:
         super().__init__()
         self.policyId = 'XUEQIU'
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger(__name__).getlog()
 
     def getList(self, task: Task):
         self.logger.info(f'{task.taskId}, {task.taskType}, {task.policyId}')

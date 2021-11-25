@@ -2,6 +2,10 @@ import abc
 
 
 class BaseHandler(object, metaclass=abc.ABCMeta):
-	@abc.abstractmethod
-	def handle(self, task_or_result):
-		pass
+    @abc.abstractmethod
+    def handle(self, task_or_result):
+        pass
+
+    @abc.abstractmethod
+    def createHandlerProcess(self):
+        pass
