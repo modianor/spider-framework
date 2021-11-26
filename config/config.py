@@ -6,7 +6,6 @@ from utils.log import Logger
 class BaseConfig(object):
     def __init__(self) -> None:
         super().__init__()
-        self.logger = Logger(__name__).getlog()
         self.configPath = ''
 
     @property

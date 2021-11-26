@@ -7,7 +7,6 @@ class Task(object):
         self.urlSign = urlSign
         self.companyName = companyName
         self.creditCode = creditCode
-        self.result = None
 
     def __str__(self) -> str:
         return str(self.__dict__)

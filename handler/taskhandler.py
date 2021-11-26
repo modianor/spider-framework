@@ -74,7 +74,6 @@ class FetcherThread(Thread):
                         elif taskType == 'Data':
                             # (taskStatus,{k1:v1, k2:v2, k3:v3}],kibanalog)
                             result = self.fetcherInstance.getData(task)
-                        task.result = result
                         self.resultQueue.putResult((task, result))
                     except:
                         logger.error(traceback.format_exc())

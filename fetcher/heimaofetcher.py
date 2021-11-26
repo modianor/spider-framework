@@ -82,5 +82,4 @@ if __name__ == '__main__':
                     creditCode=''
                     )
         result = fetcher.getDetail(task)
-        task.result = result
         taskSerialize(task, result)
