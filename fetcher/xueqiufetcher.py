@@ -11,7 +11,7 @@ class XueQiuFetcher(Fetcher):
     def __init__(self) -> None:
         super().__init__()
         self.policyId = 'XUEQIU'
-        self.logger = Logger(__name__).getlog()
+        self.logger = Logger(self.policyId.lower()).getlog()
 
     def getList(self, task: Task):
         self.logger.info(f'{task.taskId}, {task.taskType}, {task.policyId}')

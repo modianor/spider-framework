@@ -15,7 +15,7 @@ class HeiMaoFetcher(Fetcher):
     def __init__(self) -> None:
         super().__init__()
         self.policyId = 'HEIMAOTOUSU'
-        self.logger = Logger(__name__).getlog()
+        self.logger = Logger(self.policyId.lower()).getlog()
 
     def getList(self, task: Task):
         try:
@@ -36,6 +36,7 @@ class HeiMaoFetcher(Fetcher):
 
     def getDetail(self, task: Task):
         try:
+            self.logger.info(f'Detail任务参数{task.urlSign}')
             json_data = json.loads(task.urlSign)
             url = json_data['url']
             content = list()
@@ -48,6 +49,7 @@ class HeiMaoFetcher(Fetcher):
                 'downloadTime': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
             content.append({'info.txt': json.dumps(info, ensure_ascii=False)})
+            self.logger.info(f'Detail任务成功')
             return FetcherStatus.SUCCESS, content
         except:
             pass
@@ -72,6 +74,7 @@ if __name__ == '__main__':
 
     result = fetcher.getList(task)
     taskParams = json.loads(result[1])
+    print(result[1])
 
     for taskParam in taskParams:
         task = Task(taskId=taskId(),

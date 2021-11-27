@@ -15,11 +15,11 @@ class ClientConfig(BaseConfig):
 
     @property
     def TASKQUEUE_SZIE(self):
-        return int(self.section.get('TASKQUEUE_SIZE', '10'))
+        return float(self.section.get('TASKQUEUE_SIZE', '10'))
 
     @property
     def Fetch_Interval(self):
-        return int(self.section.get('Fetch_Interval', '1'))
+        return float(self.section.get('Fetch_Interval', '1'))
 
     @property
     def VERSION(self):
@@ -36,3 +36,15 @@ class ClientConfig(BaseConfig):
     @property
     def RESULT_HANDLER_NUM(self):
         return int(self.section.get('RESULT_HANDLER_NUM', '0'))
+
+    @property
+    def Fetch_Wait_Interval(self):
+        return float(self.section.get('Fetch_Wait_Interval', '3'))
+
+    @property
+    def Handle_Task_Interval(self):
+        return float(self.section.get('Handle_Task_Interval', '.5'))
+
+    @property
+    def Handle_Task_Wait_Interval(self):
+        return float(self.section.get('Handle_Task_Wait_Interval', '1'))

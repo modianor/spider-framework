@@ -1,0 +1,2 @@
+class Monitor(object):
+    pass

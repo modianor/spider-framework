@@ -1,7 +1,5 @@
 import configparser
 
-from utils.log import Logger
-
 
 class BaseConfig(object):
     def __init__(self) -> None:

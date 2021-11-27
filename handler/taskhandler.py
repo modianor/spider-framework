@@ -4,15 +4,13 @@ from threading import Thread
 from typing import Dict, List
 
 from config import Plugins
+from core import logger
 from core.task import Task
 from fetcher import Fetcher
 from handler import BaseHandler
 from utils.cls_loader import load_object
-from utils.log import Logger
 from utils.single import Singleton
 from utils.spiderqueue import TaskQueue, ResultQueue
-
-logger = Logger(__name__).getlog()
 
 
 class FetcherThread(Thread):
@@ -60,7 +58,7 @@ class FetcherThread(Thread):
             if not self.close:
                 self.__checkChildThreads__()
                 if not self.policyTaskQueue.isEmpty():
-                    # self.logger.info(f'{self.threadName} handler a task')
+                    # logger.info(f'{self.threadName} handler a task')
                     try:
                         task = self.policyTaskQueue.getTask()
                         result = None
@@ -128,7 +126,7 @@ class TaskHandler(BaseHandler):
     def handle(self, task: Task):
         policyId = task.policyId
         policyTaskQueue = self.policyTaskQueues[policyId]
-        if policyTaskQueue.size() < 10:
+        if policyTaskQueue.size() < 2:
             self.policyTaskQueues[policyId].putTask(task)
             return True
         else:

@@ -11,6 +11,10 @@ class Task(object):
     def __str__(self) -> str:
         return str(self.__dict__)
 
+    @classmethod
+    def fromJson(cls, **kwargs):
+        return cls(**kwargs)
+
 
 if __name__ == '__main__':
     task = Task(
