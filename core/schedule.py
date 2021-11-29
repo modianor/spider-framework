@@ -1,4 +1,5 @@
 import time
+import traceback
 from threading import Thread
 from typing import Dict
 from urllib.parse import urljoin
@@ -38,46 +39,52 @@ class Scheduler(object):
     def getTask(self):
         self.logger.info('GetTask Thread start')
         while True:
-            if self.run:
-                if self.taskQueue.size() <= Client.TASK_QUEUE_SIZE:
-                    data = {'policyIds': ['HEIMAOTOUSU']}
-                    url = urljoin(Client.BASE_URL, './getTaskParams')
-                    response = requests.post(url=url, data=data)
-                    task_params = response.json()
-                    for task_param in task_params:
-                        try:
-                            task = Task.fromJson(**task_param)
-                            self.taskQueue.putTask(task)
-                        except TypeError:
-                            pass
-                            # self.logger.warning('任务为空，爬虫进程继续等待任务')
-                    time.sleep(Client.Fetch_Interval)
+            try:
+                if self.run:
+                    if self.taskQueue.size() <= Client.TASK_QUEUE_SIZE:
+                        data = {'policyIds': ['HEIMAOTOUSU']}
+                        url = urljoin(Client.BASE_URL, './getTaskParams')
+                        response = requests.post(url=url, data=data)
+                        task_params = response.json()
+                        for task_param in task_params:
+                            try:
+                                task = Task.fromJson(**task_param)
+                                self.taskQueue.putTask(task)
+                            except TypeError:
+                                pass
+                                # self.logger.warning('任务为空，爬虫进程继续等待任务')
+                        time.sleep(Client.Fetch_Interval)
+                    else:
+                        time.sleep(Client.Fetch_Wait_Interval)
                 else:
+                    self.logger.info('spider is pause, waiting to wake up')
                     time.sleep(Client.Fetch_Wait_Interval)
-            else:
-                self.logger.info('spider is pause, waiting to wake up')
-                time.sleep(Client.Fetch_Wait_Interval)
+            except:
+                self.logger.error(f'Schedule获取任务错误, 错误原因:{traceback.format_exc()}')
+                time.sleep(Client.Fetch_Wait_Interval * 5)
 
     def handleTask(self):
-        self.logger.info('HandleTask Thread start')
-        self.taskHandler = TaskHandler(policyFetchers=self.policyFetchers, resultQueue=self.resultQueue)
-        self.resultHandler = ResultHandler(resultQueue=self.resultQueue)
-        while True:
-            if not self.taskQueue.isEmpty():
-                # 任务队列不为空，尝试处理任务
-                task = self.taskQueue.getTask()
-                self.tryHandleTask(task)
-            else:
-                # 任务队列为空，等待新的任务进入任务队列
-                time.sleep(Client.Handle_Task_Wait_Interval)
+        try:
+            self.logger.info('HandleTask Thread start')
+            self.taskHandler = TaskHandler(policyFetchers=self.policyFetchers, resultQueue=self.resultQueue)
+            self.resultHandler = ResultHandler(resultQueue=self.resultQueue)
+        except:
+            self.logger.error(f'Schedule初始化TaskHandle和ResultHandle失败, 错误原因:{traceback.format_exc()}')
 
-    def tryHandleTask(self, task):
         while True:
-            flag = self.taskHandler.handle(task)
-            if flag:
-                break
-            else:
-                time.sleep(Client.Handle_Task_Interval)
+            try:
+                if not self.taskQueue.isEmpty():
+                    # 任务队列不为空，尝试处理任务
+                    task = self.taskQueue.getTask()
+                    handleStatus = self.taskHandler.handle(task)
+                    if not handleStatus:
+                        self.taskQueue.putTask(task)
+                else:
+                    # 任务队列为空，等待新的任务进入任务队列
+                    time.sleep(Client.Handle_Task_Wait_Interval)
+            except:
+                self.logger.error(f'Schedule处理任务错误, 错误原因:{traceback.format_exc()}')
+                time.sleep(Client.Handle_Task_Wait_Interval * 5)
 
     def loadFetchers(self):
         plugins: Dict = Plugins.plugins
@@ -93,6 +100,7 @@ class Scheduler(object):
                         proxy=0,
                         interval=0,
                         duplicate=None,
+                        taskQueueSize=4,
                         timeout=60,
                         retryTimes=3)
         fetcher = self.policyFetchers[policy.policyId]
@@ -100,7 +108,7 @@ class Scheduler(object):
         fetcher.setPolicy(policy)
 
     def getHostInfo(self):
-        # 更新进程主机运行的策略和策略对应处理的任务
+        # 更新进程主机运行参数和策略对应处理的任务
         pass
 
     def initSchedule(self):

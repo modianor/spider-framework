@@ -20,8 +20,6 @@ class Spider(object):
         self.scheduler.run = False
         logger.info(f'爬虫进程:{self.processName} 版本:{self.VERSION} 停止调度')
 
-
-
     def init(self):
         self.scheduler.initSchedule()
         logger.info(f'{"=" * 10}爬虫进程初始化完成{"=" * 10}')

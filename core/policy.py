@@ -12,6 +12,7 @@ class Policy(object):
     # 请求重试次数
     # 策略持有的任务类型List|Detail|Data
     # 策略对应插件的子线程(默认为0)
+    # 策略对应插件的子线程任务队列上限(默认为1)
 
     def __init__(self, policyId: str, **kwargs) -> None:
         super().__init__()
@@ -21,8 +22,8 @@ class Policy(object):
         self.duplicate = kwargs.get('duplicate', 'duplicate_server_1')
         self.timeout = kwargs.get('timeout', 60)
         self.retryTimes = kwargs.get('retryTimes', 3)
+        self.taskQueueSize = kwargs.get('taskQueueSize', 1)
         self.taskTypesInfo = kwargs.get('taskTypesInfo', 'List|Detail|Data[0]')  # List|Detail|Data
-        # self.childThreadNum = kwargs['childThreadNum']
         self.kwargs = kwargs
 
     @property

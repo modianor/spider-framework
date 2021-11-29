@@ -3,12 +3,10 @@ import traceback
 from threading import Thread
 from typing import Dict, List
 
-from config import Plugins
 from core import logger
 from core.task import Task
 from fetcher import Fetcher
 from handler import BaseHandler
-from utils.cls_loader import load_object
 from utils.single import Singleton
 from utils.spiderqueue import TaskQueue, ResultQueue
 
@@ -99,7 +97,6 @@ class TaskHandler(BaseHandler):
         # 创建业务Handle线程
         self.createHandlerProcess()
 
-
     def createHandlerProcess(self):
         for policyId in self.policyFetchers:
             taskQueue = TaskQueue()
@@ -118,7 +115,8 @@ class TaskHandler(BaseHandler):
     def handle(self, task: Task):
         policyId = task.policyId
         policyTaskQueue = self.policyTaskQueues[policyId]
-        if policyTaskQueue.size() < 2:
+        fetcher = self.policyFetchers[policyId]
+        if policyTaskQueue.size() < fetcher.policy.taskQueueSize:
             self.policyTaskQueues[policyId].putTask(task)
             return True
         else:
