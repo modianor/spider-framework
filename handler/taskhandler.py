@@ -87,27 +87,20 @@ class FetcherThread(Thread):
 
 @Singleton
 class TaskHandler(BaseHandler):
-    def __init__(self, resultQueue: ResultQueue) -> None:
+    def __init__(self, policyFetchers: Dict[str, Fetcher], resultQueue: ResultQueue) -> None:
         # 业务策略Handler
         self.policyHandler: Dict[str, FetcherThread] = dict()
         # 业务策略任务队列
         self.policyTaskQueues: Dict[str, TaskQueue] = dict()
         # 业务策略Fetcher
-        self.policyFetchers: Dict[str, Fetcher] = dict()
+        self.policyFetchers: Dict[str, Fetcher] = policyFetchers
         # 业务策略结果队列
         self.resultQueue = resultQueue
-        # 加载业务策略Fetcher
-        self.loadFetchers()
+        # 创建业务Handle线程
         self.createHandlerProcess()
 
-    def loadFetchers(self):
-        plugins: Dict = Plugins.plugins
-        for policyId in plugins:
-            module = plugins[policyId]
-            fetcher = load_object(module)()
-            self.policyFetchers[policyId] = fetcher
-            logger.info(f'load {module} successfully')
 
+    def createHandlerProcess(self):
         for policyId in self.policyFetchers:
             taskQueue = TaskQueue()
             fetcher = self.policyFetchers[policyId]
@@ -118,7 +111,6 @@ class TaskHandler(BaseHandler):
                                                          resultQueue=self.resultQueue,
                                                          threadName=f'{policyId}_ParentThread')
 
-    def createHandlerProcess(self):
         for policyId in self.policyHandler:
             policyIdThread = self.policyHandler[policyId]
             policyIdThread.start()

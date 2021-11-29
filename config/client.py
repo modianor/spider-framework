@@ -14,8 +14,8 @@ class ClientConfig(BaseConfig):
         return self.config['Client']
 
     @property
-    def TASKQUEUE_SZIE(self):
-        return float(self.section.get('TASKQUEUE_SIZE', '10'))
+    def TASK_QUEUE_SIZE(self):
+        return float(self.section.get('TASK_QUEUE_SIZE', '10'))
 
     @property
     def Fetch_Interval(self):
@@ -31,7 +31,7 @@ class ClientConfig(BaseConfig):
 
     @property
     def BASE_URL(self):
-        return self.section.get('BASE_URL', 'https://spider-framework.com:8096')
+        return self.section.get('BASE_URL', 'http://spider-framework.com:6048/task')
 
     @property
     def RESULT_HANDLER_NUM(self):

@@ -1,3 +1,6 @@
+from typing import List
+
+
 class Policy(object):
     # 业务配置类
 
@@ -13,11 +16,19 @@ class Policy(object):
     def __init__(self, policyId: str, **kwargs) -> None:
         super().__init__()
         self.policyId = policyId
-        self.proxy = kwargs['proxy']
-        self.interval = kwargs['interval']
-        self.duplicate = kwargs['duplicate']
-        self.timeout = kwargs['timeout']
-        self.retryTimes = kwargs['retryTimes']
-        self.taskTypes = kwargs['taskTypes']  # List|Detail|Data
-        self.childThreadNum = kwargs['childThreadNum']
+        self.proxy = kwargs.get('proxy', 0)
+        self.interval = kwargs.get('interval', 3)
+        self.duplicate = kwargs.get('duplicate', 'duplicate_server_1')
+        self.timeout = kwargs.get('timeout', 60)
+        self.retryTimes = kwargs.get('retryTimes', 3)
+        self.taskTypesInfo = kwargs.get('taskTypesInfo', 'List|Detail|Data[0]')  # List|Detail|Data
+        # self.childThreadNum = kwargs['childThreadNum']
         self.kwargs = kwargs
+
+    @property
+    def childThreadNum(self) -> int:
+        return 0
+
+    @property
+    def taskTypes(self) -> List[str]:
+        return ['List', 'Detail', 'Data']

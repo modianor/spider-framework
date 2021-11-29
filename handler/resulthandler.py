@@ -29,7 +29,7 @@ class ResultProcess(object):
                 'task': str(task),
                 'result': str(result[1])
             }
-            requests.post(url='http://127.0.0.1:6048/task/uploadTaskParams', data=data)
+            response = requests.post(url='http://127.0.0.1:6048/task/uploadTaskParams', data=data)
         elif task.taskType == 'Data':
             pass
         elif task.taskType == 'Detail':
