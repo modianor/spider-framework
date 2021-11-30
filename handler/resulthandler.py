@@ -8,6 +8,7 @@ from config import Client
 from core import logger
 from core.task import Task
 from handler import BaseHandler
+from utils.fileoperator import taskSerialize
 from utils.single import Singleton
 from utils.spiderqueue import ResultQueue
 
@@ -33,7 +34,7 @@ class ResultProcess(object):
         elif task.taskType == 'Data':
             pass
         elif task.taskType == 'Detail':
-            pass
+            taskSerialize(task, result)
         else:
             # 任务类型错误
             pass

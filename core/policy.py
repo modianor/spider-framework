@@ -1,3 +1,4 @@
+import re
 from typing import List
 
 
@@ -18,7 +19,7 @@ class Policy(object):
         super().__init__()
         self.policyId = policyId
         self.proxy = kwargs.get('proxy', 0)
-        self.interval = kwargs.get('interval', 3)
+        self.interval = kwargs.get('interval', 0)
         self.duplicate = kwargs.get('duplicate', 'duplicate_server_1')
         self.timeout = kwargs.get('timeout', 60)
         self.retryTimes = kwargs.get('retryTimes', 3)
@@ -28,6 +29,9 @@ class Policy(object):
 
     @property
     def childThreadNum(self) -> int:
+        macther = re.search(pattern='\[\d+\]', string=self.taskTypesInfo)
+        if macther:
+            return int(macther.group(1))
         return 0
 
     @property

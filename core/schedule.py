@@ -22,7 +22,7 @@ from utils.spiderqueue import TaskQueue, ResultQueue
 class Scheduler(object):
     def __init__(self) -> None:
         self.logger = logger
-        self.run = True
+        self.run = False
         # 爬虫进程任务队列
         self.taskQueue = TaskQueue()
         # 爬虫进程结果队列
@@ -58,7 +58,7 @@ class Scheduler(object):
                         time.sleep(Client.Fetch_Wait_Interval)
                 else:
                     self.logger.info('spider is pause, waiting to wake up')
-                    time.sleep(Client.Fetch_Wait_Interval)
+                    time.sleep(Client.Fetch_Wait_Interval * 5)
             except:
                 self.logger.error(f'Schedule获取任务错误, 错误原因:{traceback.format_exc()}')
                 time.sleep(Client.Fetch_Wait_Interval * 5)
@@ -100,16 +100,28 @@ class Scheduler(object):
                         proxy=0,
                         interval=0,
                         duplicate=None,
-                        taskQueueSize=4,
+                        taskQueueSize=1,
                         timeout=60,
                         retryTimes=3)
-        fetcher = self.policyFetchers[policy.policyId]
-        # 模拟更新爬取策略
-        fetcher.setPolicy(policy)
+        self.updatePolicy(policy=policy)
 
     def getHostInfo(self):
         # 更新进程主机运行参数和策略对应处理的任务
-        pass
+        policy = Policy(policyId='HEIMAOTOUSU',
+                        proxy=0,
+                        interval=0,
+                        duplicate=None,
+                        taskQueueSize=1,
+                        timeout=60,
+                        retryTimes=3,
+                        taskTypesInfo='List|Detail|Data[1]'
+                        )
+        self.updatePolicy(policy=policy)
+
+    def updatePolicy(self, policy: Policy):
+        # 更新爬取策略
+        fetcher = self.policyFetchers[policy.policyId]
+        fetcher.setPolicy(policy)
 
     def initSchedule(self):
         t1 = Thread(target=self.getPolicyInfos, args=())

@@ -48,3 +48,7 @@ class ClientConfig(BaseConfig):
     @property
     def Handle_Task_Wait_Interval(self):
         return float(self.section.get('Handle_Task_Wait_Interval', '1'))
+
+    @property
+    def PROCESS_LISTEN_PORT(self):
+        return int(self.section.get('PROCESS_LISTEN_PORT', '6049'))

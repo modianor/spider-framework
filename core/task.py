@@ -1,7 +1,8 @@
 class Task(object):
     def __init__(self, taskId=0, policyId='', taskType='', urlSign='', companyName='', creditCode='', **kwargs) -> None:
         super().__init__()
-        self.taskId = taskId
+        from utils import taskpro
+        self.taskId = taskpro.taskId()
         self.policyId = policyId
         self.taskType = taskType
         self.urlSign = urlSign
