@@ -1,4 +1,5 @@
 import time
+import traceback
 from threading import Thread
 from typing import List, Tuple
 
@@ -75,17 +76,20 @@ class ResultThread(Thread):
 
     def run(self) -> None:
         while True:
-            if not self.close:
-                self.__checkChildThreads__()
-                if not self.resultQueue.isEmpty():
-                    task, result = self.resultQueue.getResult()
-                    self.resultProcess.processTaskResult(task, result)
+            try:
+                if not self.close:
+                    self.__checkChildThreads__()
+                    if not self.resultQueue.isEmpty():
+                        task, result = self.resultQueue.getResult()
+                        self.resultProcess.processTaskResult(task, result)
+                    else:
+                        # self.logger.info(f'{self.threadName} wait 1 second, because the result queue is empty')
+                        time.sleep(0.1)
                 else:
-                    # self.logger.info(f'{self.threadName} wait 1 second, because the result queue is empty')
-                    time.sleep(0.1)
-            else:
-                logger.warning(f'{self.threadName} release')
-                break
+                    logger.warning(f'{self.threadName} release')
+                    break
+            except:
+                logger.error(f'{self.threadName}处理任务结果失败, 错误原因:\n{traceback.format_exc()}')
 
     def modifyClose(self):
         self.close = True

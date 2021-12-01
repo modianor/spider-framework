@@ -1,4 +1,5 @@
 import json
+import time
 
 import requests
 
@@ -18,5 +19,7 @@ data = {
     'taskParam': str(task)
 }
 
-response = requests.post(url='http://127.0.0.1:6048/task/generateTaskParam', data=data)
-print(response.json())
+for i in range(1, 100):
+    response = requests.post(url='http://127.0.0.1:6048/task/generateTaskParam', data=data)
+    print(response.json())
+    time.sleep(1)
