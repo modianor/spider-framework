@@ -7,7 +7,7 @@ from urllib.parse import urljoin
 import requests
 
 from config import Client, Plugins
-from core import logger
+from core import logger, status
 from core.policy import Policy
 from core.task import Task
 from fetcher import Fetcher
@@ -41,7 +41,7 @@ class Scheduler(object):
         self.logger.info('GetTask Thread start')
         while True:
             try:
-                if self.run:
+                if status.run:
                     if self.taskQueue.size() <= Client.TASK_QUEUE_SIZE:
                         data = {'policyIds': ['HEIMAOTOUSU']}
                         url = urljoin(Client.BASE_URL, './getTaskParams')
@@ -97,14 +97,16 @@ class Scheduler(object):
 
     def getPolicyInfos(self):
         # 更新所有启动策略的基本信息
-        plugins: Dict = Plugins.plugins
-        policyIds = list()
-        for policyId in plugins:
-            policyIds.append(policyId)
-        policys = getPolicy(policyIds)
-        for policy in policys:
-            self.logger.info(policy)
-            self.updatePolicy(policy=policy)
+        while True:
+            plugins: Dict = Plugins.plugins
+            policyIds = list()
+            for policyId in plugins:
+                policyIds.append(policyId)
+            policys = getPolicy(policyIds)
+            for policy in policys:
+                self.logger.info(policy)
+                self.updatePolicy(policy=policy)
+            time.sleep(60 * 10)
 
     def getHostInfo(self):
         # 更新进程主机运行参数和策略对应处理的任务
