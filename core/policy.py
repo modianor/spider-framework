@@ -1,4 +1,4 @@
-import re
+import json
 from typing import List
 
 
@@ -15,25 +15,24 @@ class Policy(object):
     # 策略对应插件的子线程(默认为0)
     # 策略对应插件的子线程任务队列上限(默认为1)
 
-    def __init__(self, policyId: str, **kwargs) -> None:
+    def __init__(self, **kwargs) -> None:
         super().__init__()
-        self.policyId = policyId
+        self.policyId = kwargs.get('policyId', '')
+        self.policyName = kwargs.get('policyName', '')
+        self.policyState = kwargs.get('policyState', False)
         self.proxy = kwargs.get('proxy', 0)
         self.interval = kwargs.get('interval', 0)
-        self.duplicate = kwargs.get('duplicate', 'duplicate_server_1')
+        # self.duplicate = kwargs.get('duplicate', 'duplicate_server_1')
         self.timeout = kwargs.get('timeout', 60)
         self.retryTimes = kwargs.get('retryTimes', 3)
         self.taskQueueSize = kwargs.get('taskQueueSize', 1)
-        self.taskTypesInfo = kwargs.get('taskTypesInfo', 'List|Detail|Data[0]')  # List|Detail|Data
+        self.childThreadNum = kwargs.get('childThreadNum', 0)
+        self.taskTypesInfo = kwargs.get('taskTypesInfo', 'List|Detail|Data')  # List|Detail|Data
         self.kwargs = kwargs
 
     @property
-    def childThreadNum(self) -> int:
-        macther = re.search(pattern='\[\d+\]', string=self.taskTypesInfo)
-        if macther:
-            return int(macther.group(1))
-        return 0
-
-    @property
     def taskTypes(self) -> List[str]:
-        return ['List', 'Detail', 'Data']
+        return self.taskTypesInfo.split('|')
+
+    def __str__(self) -> str:
+        return json.dumps(self.__dict__, ensure_ascii=False)

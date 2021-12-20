@@ -58,6 +58,7 @@ class FetcherThread(Thread):
                 if not self.policyTaskQueue.isEmpty():
                     # logger.info(f'{self.threadName} handler a task')
                     try:
+                        # 这里任务可能是通用插件任务，也有可能是通用配置任务，个人觉得通用配置爬虫需要单独占用一个进程
                         task = self.policyTaskQueue.getTask()
                         result = None
                         taskType = task.taskType

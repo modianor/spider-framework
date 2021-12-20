@@ -22,4 +22,4 @@ data = {
 for i in range(1, 100):
     response = requests.post(url='http://127.0.0.1:6048/task/generateTaskParam', data=data)
     print(response.json())
-    time.sleep(1)
+    # time.sleep(1)

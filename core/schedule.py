@@ -14,6 +14,7 @@ from fetcher import Fetcher
 from handler.resulthandler import ResultHandler
 from handler.taskhandler import TaskHandler
 from utils.cls_loader import load_object
+from utils.params import getPolicy
 from utils.single import Singleton
 from utils.spiderqueue import TaskQueue, ResultQueue
 
@@ -96,14 +97,14 @@ class Scheduler(object):
 
     def getPolicyInfos(self):
         # 更新所有启动策略的基本信息
-        policy = Policy(policyId='HEIMAOTOUSU',
-                        proxy=0,
-                        interval=0,
-                        duplicate=None,
-                        taskQueueSize=1,
-                        timeout=60,
-                        retryTimes=3)
-        self.updatePolicy(policy=policy)
+        plugins: Dict = Plugins.plugins
+        policyIds = list()
+        for policyId in plugins:
+            policyIds.append(policyId)
+        policys = getPolicy(policyIds)
+        for policy in policys:
+            self.logger.info(policy)
+            self.updatePolicy(policy=policy)
 
     def getHostInfo(self):
         # 更新进程主机运行参数和策略对应处理的任务

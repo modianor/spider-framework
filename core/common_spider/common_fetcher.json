@@ -1,0 +1,20 @@
+{
+  "headers": {},
+  "url": "",
+  "list": {
+    "title": {
+      "regex": "",
+      "xpath": "",
+      "css": "",
+      "clean": {},
+      "replace": {}
+    },
+    "date": {},
+    "url": {}
+  },
+  "detail": {
+    "main.html": {},
+    "file.*": {}
+  },
+  "data": {}
+}
