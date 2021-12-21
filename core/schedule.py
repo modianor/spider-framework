@@ -24,6 +24,8 @@ class Scheduler(object):
     def __init__(self) -> None:
         self.logger = logger
         self.run = False
+        # 爬虫进程加载的插件对应策略
+        self.policys: Dict[str, Policy or None] = dict()
         # 爬虫进程任务队列
         self.taskQueue = TaskQueue()
         # 爬虫进程结果队列
@@ -43,7 +45,7 @@ class Scheduler(object):
             try:
                 if status.run:
                     if self.taskQueue.size() <= Client.TASK_QUEUE_SIZE:
-                        data = {'policyIds': ['HEIMAOTOUSU']}
+                        data = {'policyIds': list(self.policys.keys())}
                         url = urljoin(Client.BASE_URL, './getTaskParams')
                         response = requests.post(url=url, data=data)
                         task_params = response.json()
@@ -59,10 +61,10 @@ class Scheduler(object):
                         time.sleep(Client.Fetch_Wait_Interval)
                 else:
                     self.logger.info('spider is pause, waiting to wake up')
-                    time.sleep(Client.Fetch_Wait_Interval * 5)
+                    time.sleep(Client.Fetch_Wait_Interval)
             except:
                 self.logger.error(f'Schedule获取任务错误, 错误原因:{traceback.format_exc()}')
-                time.sleep(Client.Fetch_Wait_Interval * 5)
+                time.sleep(Client.Fetch_Wait_Interval)
 
     def handleTask(self):
         try:
@@ -92,34 +94,34 @@ class Scheduler(object):
         for policyId in plugins:
             module = plugins[policyId]
             fetcher = load_object(module)()
+            self.policys[policyId] = None
             self.policyFetchers[policyId] = fetcher
             self.logger.info(f'load {module} successfully')
 
     def getPolicyInfos(self):
         # 更新所有启动策略的基本信息
         while True:
-            plugins: Dict = Plugins.plugins
-            policyIds = list()
-            for policyId in plugins:
-                policyIds.append(policyId)
-            policys = getPolicy(policyIds)
+            policys = getPolicy(list(self.policys.keys()))
             for policy in policys:
-                self.logger.info(policy)
+                self.logger.info(f'update policy {policy}')
                 self.updatePolicy(policy=policy)
+
+            # 每隔10分钟更新1次插件对应策略
             time.sleep(60 * 10)
 
     def getHostInfo(self):
         # 更新进程主机运行参数和策略对应处理的任务
-        policy = Policy(policyId='HEIMAOTOUSU',
-                        proxy=0,
-                        interval=0,
-                        duplicate=None,
-                        taskQueueSize=1,
-                        timeout=60,
-                        retryTimes=3,
-                        taskTypesInfo='List|Detail|Data[1]'
-                        )
-        self.updatePolicy(policy=policy)
+        # policy = Policy(policyId='HEIMAOTOUSU',
+        #                 proxy=0,
+        #                 interval=0,
+        #                 duplicate=None,
+        #                 taskQueueSize=1,
+        #                 timeout=60,
+        #                 retryTimes=3,
+        #                 taskTypesInfo='List|Detail|Data[1]'
+        #                 )
+        # self.updatePolicy(policy=policy)
+        pass
 
     def updatePolicy(self, policy: Policy):
         # 更新爬取策略

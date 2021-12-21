@@ -3,18 +3,14 @@ import traceback
 from threading import Thread
 from typing import List, Tuple
 
-import requests
-
 from config import Client
 from core import logger
 from core.task import Task
 from handler import BaseHandler
-from utils.fileoperator import taskSerialize
 from utils.single import Singleton
 from utils.spiderqueue import ResultQueue
-
-
 # logger = Logger(__name__).getlog()
+from utils.taskpro import uploadTask
 
 
 @Singleton
@@ -27,15 +23,11 @@ class ResultProcess(object):
         # taskType为List，任务结果目前为子任务参数，未来会扩展List任务返回值
         # taskType为Detail时，任务结果为实际下载数据，需要考虑上传失败和超时问题
         if task.taskType == 'List':
-            data = {
-                'task': str(task),
-                'result': str(result[1])
-            }
-            response = requests.post(url='http://127.0.0.1:6048/task/uploadTaskParams', data=data)
+            uploadTask(task, result)
         elif task.taskType == 'Data':
-            pass
+            uploadTask(task, result)
         elif task.taskType == 'Detail':
-            taskSerialize(task, result)
+            uploadTask(task, result)
         else:
             # 任务类型错误
             pass

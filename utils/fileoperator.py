@@ -49,3 +49,4 @@ def taskSerialize(task: Task, result: Tuple):
 
     file2zip(zip_name, task_data_dir)
     delete_file(task_data_dir)
+    return zip_name
