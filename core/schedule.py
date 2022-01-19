@@ -23,7 +23,6 @@ from utils.spiderqueue import TaskQueue, ResultQueue
 class Scheduler(object):
     def __init__(self) -> None:
         self.logger = logger
-        self.run = False
         # 爬虫进程加载的插件对应策略
         self.policys: Dict[str, Policy or None] = dict()
         # 爬虫进程任务队列

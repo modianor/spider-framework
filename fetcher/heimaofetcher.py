@@ -75,8 +75,10 @@ class HeiMaoFetcher(Fetcher):
                 content.append({'info.txt': json.dumps(info, ensure_ascii=False)})
                 self.logger.info(f'Detail任务成功')
                 return FetcherStatus.SUCCESS, content
+            else:
+                return FetcherStatus.FAIL, ''
         except:
-            pass
+            return FetcherStatus.FAIL, ''
 
     def getData(self, task: Task):
         pass

@@ -1,4 +1,5 @@
 import base64
+import json
 import os
 import random
 from typing import Tuple
@@ -31,7 +32,7 @@ def uploadTask(task: Task, result: Tuple):
     task_type = task.taskType
     if task_type == 'List' or task_type == 'Data':
         data = {
-            'task': str(task),
+            'task': json.dumps(task.__dict__, sort_keys=True),
             'result': str(result[1])
         }
         requests.post(url='http://127.0.0.1:6048/task/uploadTaskParams', data=data)
@@ -41,7 +42,7 @@ def uploadTask(task: Task, result: Tuple):
             base64_str = base64.b64encode(f1.read())  # base64类型
             src = base64_str.decode('utf-8')  # str
         data = {
-            'task': str(task),
+            'task': json.dumps(task.__dict__, sort_keys=True),
             'data': str(src)
         }
         response = requests.post(url='http://127.0.0.1:6048/task/uploadTaskData', data=data)
