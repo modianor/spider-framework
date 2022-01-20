@@ -33,7 +33,9 @@ def uploadTask(task: Task, result: Tuple):
     if task_type == 'List' or task_type == 'Data':
         data = {
             'task': json.dumps(task.__dict__, sort_keys=True),
-            'result': str(result[1])
+            'status': int(result[0]),
+            'result': str(result[1]),
+            'kibana_log': result[2] if result[2] else ''
         }
         requests.post(url='http://127.0.0.1:6048/task/uploadTaskParams', data=data)
     elif task_type == 'Detail':
@@ -43,9 +45,11 @@ def uploadTask(task: Task, result: Tuple):
             src = base64_str.decode('utf-8')  # str
         data = {
             'task': json.dumps(task.__dict__, sort_keys=True),
-            'data': str(src)
+            'status': int(result[0]),
+            'result': str(src),
+            'kibana_log': result[2] if result[2] else ''
         }
-        response = requests.post(url='http://127.0.0.1:6048/task/uploadTaskData', data=data)
+        response = requests.post(url='http://127.0.0.1:6048/task/uploadTaskParams', data=data)
         if response.status_code == 200:
             json_data = response.json()
             if json_data['status'] == 'ok':

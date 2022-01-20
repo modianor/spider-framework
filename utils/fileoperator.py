@@ -28,7 +28,7 @@ def file2zip(zip_file_name: str, zip_file_dir: str):
 
 
 def taskSerialize(task: Task, result: Tuple):
-    taskStatus, items = result
+    taskStatus, items, _ = result
     policyId = task.policyId
     dir_path = 'Data'
     task_id = task.taskId

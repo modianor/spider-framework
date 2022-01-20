@@ -23,25 +23,15 @@ class HeiMaoFetcher(Fetcher):
         self.myRequest: MyRequest = MyRequest(self.session, self.logger)
         self.policy = None
 
-    def getContent(self, url, params=None, data=None, headers=None, method='GET'):
-        res, resp = self.myRequest.getContent(url=url,
-                                              method=method,
-                                              params=params,
-                                              headers=headers,
-                                              data=data,
-                                              timeout=self.policy.timeout,
-                                              retryTimes=self.policy.retryTimes,
-                                              interval=self.policy.interval,
-                                              proxy=self.policy.proxy)
-
-        return res, resp
-
     def getList(self, task: Task):
         try:
             self.logger.info(f'List任务参数{task.urlSign}')
             json_data = json.loads(task.urlSign)
-            url = json_data['url']
+            type_ = json_data['type']
+            page_size = json_data['page_size']
+            page = json_data['page']
             content = list()
+            url = f'https://tousu.sina.com.cn/api/grp_comp/feed?type={type_}&page_size={page_size}&page={page}&_=1637825891933'
             res, resp = self.getContent(url, method='GET')
             if res:
                 json_data = resp.json()
@@ -49,13 +39,16 @@ class HeiMaoFetcher(Fetcher):
                 for complaint in complaints:
                     urlSign = {'url': complaint['url']}
                     content.append([urlSign, '', '', f'{self.policyId}|Detail'])
-                self.logger.info(f'List任务成功, 生成{len(content)}个Detail任务')
-                return FetcherStatus.SUCCESS, json.dumps(content, ensure_ascii=False)
+                kibana_log = f'List任务成功, 生成{len(content)}个Detail任务'
+                self.logger.info(kibana_log)
+                return FetcherStatus.SUCCESS, json.dumps(content, ensure_ascii=False, sort_keys=True), kibana_log
             else:
-                return FetcherStatus.None_State, ''
+                kibana_log = f'List任务访问请求失败'
+                return FetcherStatus.None_State, '', kibana_log
         except:
-            self.logger.error(traceback.format_exc())
-            return FetcherStatus.FAIL, ''
+            kibana_log = f'List任务处理错误，错误原因:{traceback.format_exc()}'
+            self.logger.error(kibana_log)
+            return FetcherStatus.FAIL, '', kibana_log
 
     def getDetail(self, task: Task):
         try:
@@ -68,17 +61,24 @@ class HeiMaoFetcher(Fetcher):
             if res:
                 content.append({'index.html': resp.text})
                 info = {
+                    'policyId': self.policyId,
+                    'taskId': task.taskId,
                     'url': url,
                     'downloadUrl': url,
                     'downloadTime': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 }
                 content.append({'info.txt': json.dumps(info, ensure_ascii=False)})
-                self.logger.info(f'Detail任务成功')
-                return FetcherStatus.SUCCESS, content
+                kibana_log = f'Detail任务成功'
+                self.logger.info(kibana_log)
+                return FetcherStatus.SUCCESS, content, kibana_log
             else:
-                return FetcherStatus.FAIL, ''
+                kibana_log = f'Detail任务失败'
+                self.logger.warning(kibana_log)
+                return FetcherStatus.FAIL, '', kibana_log
         except:
-            return FetcherStatus.FAIL, ''
+            kibana_log = f'Detail任务处理错误，错误原因:{traceback.format_exc()}'
+            self.logger.error(kibana_log)
+            return FetcherStatus.FAIL, '', kibana_log
 
     def getData(self, task: Task):
         pass
@@ -95,7 +95,11 @@ if __name__ == '__main__':
     fetcher = HeiMaoFetcher()
     fetcher.setPolicy(policy=policy)
 
-    urlSign = {'url': 'https://tousu.sina.com.cn/api/grp_comp/feed?type=2&page_size=10&page=2&_=1637825891933'}
+    urlSign = {
+        'type': '2',
+        'page_size': '10',
+        'page': 'page'
+    }
     task = Task(taskId=taskId(),
                 policyId='HEIMOUTOUSU',
                 taskType='List',
