@@ -115,6 +115,9 @@ class TaskHandler(BaseHandler):
 
     def handle(self, task: Task):
         policyId = task.policyId
+        policyMode = task.policyMode
+        if policyMode == 'config':
+            policyId = 'NORMAL'
         policyTaskQueue = self.policyTaskQueues[policyId]
         fetcher = self.policyFetchers[policyId]
         if policyTaskQueue.size() < fetcher.policy.taskQueueSize:

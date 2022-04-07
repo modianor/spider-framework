@@ -4,20 +4,109 @@ import requests
 
 from core.task import Task
 
-urlSign = {'url': 'https://tousu.sina.com.cn/api/grp_comp/feed?type=2&page_size=10&page=18&_=1637825891933'}
-task = Task(taskId='933467091187531845',
-			policyId='HEIMAOTOUSU',
-			taskType='List',
-			urlSign=json.dumps(urlSign, sort_keys=True),
-			companyName='',
-			creditCode=''
-			)
 
-data = {
-	'taskParam': json.dumps(task.__dict__, sort_keys=True)
-}
-# print(json.dumps(task.__dict__, sort_keys=True))
-for i in range(1, 2):
-	response = requests.post(url='http://127.0.0.1:6048/task/generateTaskSourceParam', data=data)
-	print(response.json())
-	# time.sleep(1)
+def insert_list_task():
+    for i in range(1, 2):
+        urlSign = {'type': '2', 'page_size': '10', 'page': str(i)}
+        task = Task(taskId=0,
+                    policyId='HEIMAOTOUSU',
+                    taskType='List',
+                    urlSign=json.dumps(urlSign, sort_keys=True),
+                    companyName='',
+                    creditCode=''
+                    )
+
+        data = {
+            'taskParam': json.dumps(task.__dict__, sort_keys=True)
+        }
+        response = requests.post(url='http://127.0.0.1:6048/task/generateTaskSourceParam', data=data)
+        print(response.json())
+
+
+def insert_normal_task1():
+    for i in range(1, 2):
+        common_config = {
+            "headers": {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36",
+            },
+            "url": "https://www.mee.gov.cn/home/ztbd/rdzl/hjcf/zjcf/index_{pageNums}.shtml",
+            "pageParse": {
+                "autoPage": True,
+                "diff": 0.99,
+                "pageStart": 1,
+                "pageBegin": 2,
+                "pageEnd": 1
+            },
+            "list": {
+                "title": {
+                    "xpath": "//ul/li/a[contains(text(),'决定书')]/text()",
+                    "replace": {
+                        "处.*?书": "****"
+                    }
+                },
+                "date": {"xpath": "//ul/li/a[contains(text(),'决定书')]/preceding-sibling::span/text()"},
+                "url": {"xpath": "//ul/li/a[contains(text(),'决定书')]/@href"}
+            },
+            "detail": {
+                "main.html": {},
+                "file.*": {}
+            },
+            "data": {}
+        }
+        urlSign = {
+            "url": "https://www.mee.gov.cn/home/ztbd/rdzl/hjcf/zjcf/index.shtml"
+        }
+
+        task = Task(taskId=0, policyId='HENAN_HEBI_JUNXIAN',
+                    taskType="List",
+                    urlSign=json.dumps(urlSign, ensure_ascii=False),
+                    companyName=json.dumps(common_config),
+                    policyMode='config')
+
+        data = {
+            'taskParam': json.dumps(task.__dict__, sort_keys=True)
+        }
+        response = requests.post(url='http://127.0.0.1:6048/task/generateTaskSourceParam', data=data)
+        print(response.json())
+
+
+def insert_normal_task2():
+    for i in range(1, 2):
+        common_config = {
+            "headers": {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36",
+            },
+            "url": "http://www.xunxian.gov.cn/xunxian/zfxxgk8659/fdzdgknr1886/hjbh77/dqwrfz/0da41f98-{pageNums}.html",
+            "pageParse": {
+                "autoPage": True,
+                "diff": 0.997
+            },
+            "list": {
+                "title": {
+                    "xpath": "//div[@class=\"zfxxgk_zdgkc\"]/ul/li/a[contains(text(),'决定书')]/text()",
+                },
+                "date": {
+                    "xpath": "//div[@class=\"zfxxgk_zdgkc\"]/ul/li/a[contains(text(),'决定书')]/following-sibling::b/text()"},
+                "url": {"xpath": "//div[@class=\"zfxxgk_zdgkc\"]/ul/li/a[contains(text(),'决定书')]/@href"}
+            },
+            "detail": {
+                "main.html": {},
+                "file.*": {}
+            },
+            "data": {}
+        }
+        urlSign = {}
+
+        task = Task(taskId=0, policyId='HENAN_HEBI_JUNXIAN',
+                    taskType="List",
+                    urlSign=json.dumps(urlSign, ensure_ascii=False),
+                    companyName=json.dumps(common_config),
+                    policyMode='config')
+        data = {
+            'taskParam': json.dumps(task.__dict__, sort_keys=True)
+        }
+        response = requests.post(url='http://127.0.0.1:6048/task/generateTaskSourceParam', data=data)
+        print(response.json())
+
+
+insert_normal_task2()

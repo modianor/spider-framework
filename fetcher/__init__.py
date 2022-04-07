@@ -14,11 +14,13 @@ class Fetcher(object, metaclass=abc.ABCMeta):
 
     def __init__(self) -> None:
         super().__init__()
+        self.policyId = None
         self.policy: Policy = None
         self.myRequest = None
 
     def setPolicy(self, policy: Policy):
         self.policy = policy
+        self.policyId = policy.policyId
 
     def getContent(self, url, params=None, data=None, headers=None, method='GET'):
         res, resp = self.myRequest.getContent(url=url,

@@ -1,6 +1,7 @@
 import os
 import shutil
 import stat
+import traceback
 import zipfile
 from os.path import join, exists
 from typing import Tuple
@@ -44,8 +45,11 @@ def taskSerialize(task: Task, result: Tuple):
         for name in item:
             value = item[name]
             file_path = join(task_data_dir, name)
-            with open(file_path, 'w') as f:
-                f.write(value)
+            with open(file_path, 'w', encoding='utf-8') as f:
+                try:
+                    f.write(value)
+                except:
+                    print(traceback.format_exc())
 
     file2zip(zip_name, task_data_dir)
     delete_file(task_data_dir)

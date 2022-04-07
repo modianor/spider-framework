@@ -8,6 +8,8 @@ class Task(object):
         self.urlSign = urlSign
         self.companyName = companyName
         self.creditCode = creditCode
+        # 策略工作模式
+        self.policyMode = kwargs.get('policyMode', 'plugin')
         self.in_progress_time = kwargs.get('in_progress_time', '')
         self.parentTaskId = kwargs.get('parentTaskId', '')
 
