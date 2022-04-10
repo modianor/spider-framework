@@ -1,3 +1,4 @@
+import threading
 import time
 import traceback
 from threading import Thread
@@ -37,27 +38,34 @@ class Scheduler(object):
         self.policyFetchers: Dict[str, Fetcher] = dict()
         # 主动加载
         self.loadFetchers()
+        self.taskLock = threading.Lock()
 
     def getTask(self):
         self.logger.info('GetTask Thread start')
         while True:
             try:
                 if status.run:
-                    if self.taskQueue.size() <= Client.TASK_QUEUE_SIZE:
-                        data = {'policyIds': list(self.policys.keys())}
-                        url = urljoin(Client.BASE_URL, './getTaskParams')
-                        response = requests.post(url=url, data=data)
-                        task_params = response.json()
-                        for task_param in task_params:
-                            try:
-                                task = Task.fromJson(**task_param)
-                                self.taskQueue.putTask(task)
-                            except TypeError:
-                                pass
-                                # self.logger.warning('任务为空，爬虫进程继续等待任务')
-                        time.sleep(Client.Fetch_Interval)
-                    else:
-                        time.sleep(Client.Fetch_Wait_Interval)
+                    try:
+                        self.taskLock.acquire()
+                        if self.taskQueue.size() <= Client.TASK_QUEUE_SIZE:
+                            data = {'policyIds': list(self.policys.keys())}
+                            url = urljoin(Client.BASE_URL, './getTaskParams')
+                            response = requests.post(url=url, data=data)
+                            task_params = response.json()
+                            for task_param in task_params:
+                                try:
+                                    task = Task.fromJson(**task_param)
+                                    self.taskQueue.putTask(task)
+                                except TypeError:
+                                    pass
+                                    # self.logger.warning('任务为空，爬虫进程继续等待任务')
+                            time.sleep(Client.Fetch_Interval)
+                        else:
+                            time.sleep(Client.Fetch_Wait_Interval)
+                    except:
+                        pass
+                    finally:
+                        self.taskLock.release()
                 else:
                     self.logger.info('spider is pause, waiting to wake up')
                     time.sleep(Client.Fetch_Wait_Interval)
@@ -75,15 +83,21 @@ class Scheduler(object):
 
         while True:
             try:
-                if not self.taskQueue.isEmpty():
-                    # 任务队列不为空，尝试处理任务
-                    task = self.taskQueue.getTask()
-                    handleStatus = self.taskHandler.handle(task)
-                    if not handleStatus:
-                        self.taskQueue.putTask(task)
-                else:
-                    # 任务队列为空，等待新的任务进入任务队列
-                    time.sleep(Client.Handle_Task_Wait_Interval)
+                try:
+                    self.taskLock.acquire()
+                    if not self.taskQueue.isEmpty():
+                        # 任务队列不为空，尝试处理任务
+                        task = self.taskQueue.getTask()
+                        handleStatus = self.taskHandler.handle(task)
+                        if not handleStatus:
+                            self.taskQueue.putTask(task)
+                    else:
+                        # 任务队列为空，等待新的任务进入任务队列
+                        time.sleep(Client.Handle_Task_Wait_Interval)
+                except:
+                    pass
+                finally:
+                    self.taskLock.release()
             except:
                 self.logger.error(f'Schedule处理任务错误, 错误原因:{traceback.format_exc()}')
                 time.sleep(Client.Handle_Task_Wait_Interval * 5)
