@@ -81,7 +81,35 @@ class HeiMaoFetcher(Fetcher):
             return FetcherStatus.FAIL, '', kibana_log
 
     def getData(self, task: Task):
-        pass
+        try:
+            self.logger.info(f'Data任务参数{task.urlSign}')
+            json_data = json.loads(task.urlSign)
+            sort_col = json_data['sort_col']
+            sort_ord = json_data['sort_ord']
+            page_size = json_data['page_size']
+            page = json_data['page']
+            content = list()
+            url = f'https://tousu.sina.com.cn/api/company/main_search?&sort_col={sort_col}&sort_ord={sort_ord}' \
+                  f'&page_size={page_size}&page={page}&_=1643421746143'
+            res, resp = self.getContent(url, method='GET')
+            if res:
+                json_data = resp.json()
+                lists = json_data['result']['data']['lists']
+                for item in lists:
+                    uid = item['uid']
+                    title = item['title']
+                    url = f"https:{item['url']}"
+                    content.append({"uid": uid, "title": title, 'url': url})
+                kibana_log = f'Data任务成功, 生成{len(content)}个Data任务'
+                self.logger.info(kibana_log)
+                return FetcherStatus.SUCCESS, json.dumps(content, ensure_ascii=False, sort_keys=True), kibana_log
+            else:
+                kibana_log = f'Data任务访问请求失败'
+                return FetcherStatus.None_State, '', kibana_log
+        except:
+            kibana_log = f'Data任务处理错误，错误原因:{traceback.format_exc()}'
+            self.logger.error(kibana_log)
+            return FetcherStatus.FAIL, '', kibana_log
 
 
 if __name__ == '__main__':
@@ -98,7 +126,7 @@ if __name__ == '__main__':
     urlSign = {
         'type': '2',
         'page_size': '10',
-        'page': 'page'
+        'page': '1'
     }
     task = Task(taskId=taskId(),
                 policyId='HEIMOUTOUSU',
