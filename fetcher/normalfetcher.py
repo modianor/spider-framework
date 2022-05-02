@@ -386,6 +386,7 @@ class NormalFetcher(Fetcher):
     def updatePolicy(self, task: Task):
         policys = getPolicy([task.policyId])
         for policy in policys:
+            self.logger = Logger(task.policyId.lower()).getlog()
             self.logger.info(f'update policy {policy}')
             self.setPolicy(policy=policy)
 
@@ -424,7 +425,7 @@ class NormalFetcher(Fetcher):
             else:
                 kibana_log = f'Detail任务失败'
                 self.logger.warning(kibana_log)
-                return FetcherStatus.None_State, '', kibana_log
+                return FetcherStatus.FAIL, '', kibana_log
         except:
             kibana_log = f'Detail任务处理错误，错误原因:{traceback.format_exc()}'
             self.logger.error(kibana_log)
@@ -448,6 +449,7 @@ class NormalFetcher(Fetcher):
         return result
 
     def getData(self, task: Task):
+        self.updatePolicy(task)
         self.logger.info(f'通用配置爬虫正在处理 policyId:{task.policyId}, Data任务参数:{task.urlSign}')
         # 上下文容器
         context = {}

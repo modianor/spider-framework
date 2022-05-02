@@ -14,6 +14,11 @@ class Logger(object):
         self.logger = logging.getLogger(logger)
         self.logger.setLevel(logging.DEBUG)
 
+        cur_handlers = self.logger.handlers
+        for cur_handler in cur_handlers:
+            self.logger.removeHandler(cur_handler)
+            cur_handler.close()
+
         fmt = '%(asctime)s [%(name)s:%(lineno)d] %(levelname)s: %(message)s'
         format_str = logging.Formatter(fmt)
 
@@ -22,18 +27,19 @@ class Logger(object):
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
 
-        fh = RotatingFileHandler(f'{log_dir}/{logger}.log', maxBytes=1024 * 1024 * 10, backupCount=3, encoding="utf-8")
-        fh.setFormatter(fmt=format_str)
+        if not self.contains_handler(logger):
+            fh = RotatingFileHandler(f'{log_dir}/{logger}.log', maxBytes=1024 * 1024 * 10, backupCount=3,
+                                     encoding="utf-8")
+            fh.setFormatter(fmt=format_str)
+            fh.set_name(logger)
+            self.logger.addHandler(fh)
 
-        # 再创建一个handler，用于输出到控制台
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        # 定义handler的输出格式
-        ch.setFormatter(format_str)
-
-        # 给logger添加handler
-        self.logger.addHandler(fh)
-        self.logger.addHandler(ch)
+        if not self.contains_handler('console'):
+            ch = logging.StreamHandler()
+            ch.setLevel(logging.DEBUG)
+            ch.setFormatter(format_str)
+            ch.set_name('console')
+            self.logger.addHandler(ch)
 
         #  添加下面一句，在记录日志之后移除句柄
         # self.logger.removeHandler(ch)
@@ -44,3 +50,10 @@ class Logger(object):
 
     def getlog(self):
         return self.logger
+
+    def contains_handler(self, name):
+        handlers = self.logger.handlers
+        for handler in handlers:
+            if handler.name == name:
+                return True
+        return False
