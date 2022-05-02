@@ -10,7 +10,7 @@ def getPolicy(policy_list: List[str]):
     params = {
         'policyIdStr': policyIdStr
     }
-    response = requests.get('http://localhost:6048/policy/getPolicysByPolicyIdStr', params=params)
+    response = requests.get('http://spider-framework:6048/policy/getPolicysByPolicyIdStr', params=params)
     items = response.json()
     data = list()
     for item in items:

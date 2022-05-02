@@ -13,6 +13,7 @@ from requests import Session
 from core.task import Task
 from fetcher import Fetcher, FetcherStatus
 from utils.log import Logger
+from utils.params import getPolicy
 from utils.request_util import MyRequest
 
 
@@ -382,8 +383,15 @@ class NormalFetcher(Fetcher):
             self.logger.error(kibana_log)
             return FetcherStatus.FAIL, '', kibana_log
 
+    def updatePolicy(self, task: Task):
+        policys = getPolicy([task.policyId])
+        for policy in policys:
+            self.logger.info(f'update policy {policy}')
+            self.setPolicy(policy=policy)
+
     def getDetail(self, task: Task):
         try:
+            self.updatePolicy(task)
             self.logger.info(f'通用配置爬虫正在处理 policyId:{task.policyId}, Detail任务参数:{task.urlSign}')
             context = {}
             policyId = task.policyId
@@ -423,6 +431,7 @@ class NormalFetcher(Fetcher):
             return FetcherStatus.FAIL, '', kibana_log
 
     def getList(self, task: Task):
+        self.updatePolicy(task)
         self.logger.info(f'通用配置爬虫正在处理 policyId:{task.policyId}, List任务参数:{task.urlSign}')
         # 上下文容器
         context = {}

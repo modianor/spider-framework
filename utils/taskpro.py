@@ -37,7 +37,7 @@ def uploadTask(task: Task, result: Tuple):
             'result': str(result[1]),
             'kibana_log': result[2] if result[2] else ''
         }
-        requests.post(url='http://127.0.0.1:6048/task/uploadTaskParams', data=data)
+        requests.post(url='http://spider-framework:6048/task/uploadTaskParams', data=data)
     elif task_type == 'Detail':
         zipPath = taskSerialize(task, result)
         with open(zipPath, 'rb') as f1:
@@ -49,7 +49,7 @@ def uploadTask(task: Task, result: Tuple):
             'result': str(src),
             'kibana_log': result[2] if result[2] else ''
         }
-        response = requests.post(url='http://127.0.0.1:6048/task/uploadTaskParams', data=data)
+        response = requests.post(url='http://spider-framework:6048/task/uploadTaskParams', data=data)
         if response.status_code == 200:
             json_data = response.json()
             if json_data['status'] == 'ok':
