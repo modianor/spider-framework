@@ -387,7 +387,7 @@ class NormalFetcher(Fetcher):
         policys = getPolicy([task.policyId])
         for policy in policys:
             self.logger = Logger(task.policyId.lower()).getlog()
-            self.logger.info(f'update policy {policy}')
+            self.myRequest.update(self.session, self.logger)
             self.setPolicy(policy=policy)
 
     def getDetail(self, task: Task):

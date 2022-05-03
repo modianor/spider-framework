@@ -6,15 +6,17 @@ from urllib.parse import urlencode
 import requests
 from requests import Session
 
-from utils.single import Singleton
 
-
-@Singleton
 class MyRequest(object):
     def __init__(self, session: Session, logger: Logger):
+        self.session = None
+        self.logger = None
+        self.proxies = {}
+        self.update(session, logger)
+
+    def update(self, session: Session, logger: Logger):
         self.logger = logger
         self.session: Session = session
-        self.proxies = {}
 
     def getContent(self, url,
                    method='GET',

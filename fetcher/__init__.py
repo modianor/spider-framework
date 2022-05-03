@@ -2,6 +2,7 @@ import abc
 
 from core.policy import Policy
 from core.task import Task
+from utils.request_util import MyRequest
 
 
 class FetcherStatus:
@@ -16,7 +17,7 @@ class Fetcher(object, metaclass=abc.ABCMeta):
         super().__init__()
         self.policyId = None
         self.policy: Policy = None
-        self.myRequest = None
+        self.myRequest = MyRequest(None, None)
 
     def setPolicy(self, policy: Policy):
         self.policy = policy
