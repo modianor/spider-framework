@@ -1,0 +1,4 @@
+lxml==4.4.1
+PyInstaller==5.1
+python_Levenshtein==0.12.2
+requests==2.23.0
