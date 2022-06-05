@@ -27,7 +27,7 @@ class ClientConfig(BaseConfig):
 
     @property
     def PROCESS_NAME(self):
-        return self.section.get('PROCESS_NAME', 'WIND-ADTSP')
+        return self.section.get('PROCESS_NAME', 'wcb_adsp')
 
     @property
     def BASE_URL(self):

@@ -25,8 +25,8 @@ class HeiMaoFetcher(Fetcher):
 
     def getList(self, task: Task):
         try:
-            self.logger.info(f'List任务参数{task.urlSign}')
-            json_data = json.loads(task.urlSign)
+            self.logger.info(f'List任务参数{task.companyName}')
+            json_data = json.loads(task.companyName)
             type_ = json_data['type']
             page_size = json_data['page_size']
             page = json_data['page']

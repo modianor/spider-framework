@@ -32,7 +32,7 @@ class MyRequest(object):
         curRetryTime = 0
         while True:
             response = None
-            if curRetryTime < retryTimes:
+            if curRetryTime < retryTimes + 1:
                 try:
                     time.sleep(interval)
                     if params is None or params == {}:
@@ -40,19 +40,19 @@ class MyRequest(object):
                     else:
                         self.logger.info(f'使用本地IP 访问GET[{url + "?" + urlencode(params)}] 开始')
                     if method.upper() == 'GET':
-                        if proxy == 0:
+                        if int(proxy) == 0:
                             response = requests.get(url=url, params=params or {}, headers=headers, timeout=timeout,
                                                     **kwargs)
-                        elif proxy == 1:
+                        elif int(proxy) == 1:
                             proxies = self.getProxy('')
                             response = requests.get(url=url, params=params or {}, headers=headers, timeout=timeout,
                                                     proxies=proxies, **kwargs)
 
                     elif method.upper() == 'POST':
-                        if proxy == 0:
+                        if int(proxy) == 0:
                             response = requests.post(url=url, params=params or {}, data=data, headers=headers,
                                                      timeout=timeout, **kwargs)
-                        elif proxy == 1:
+                        elif int(proxy) == 1:
                             proxies = self.getProxy('')
                             response = requests.post(url=url, params=params or {}, data=data, headers=headers,
                                                      timeout=timeout, proxies=proxies, **kwargs)

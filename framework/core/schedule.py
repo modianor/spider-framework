@@ -49,7 +49,7 @@ class Scheduler(object):
                     try:
                         self.spiderLock.getTaskLock().acquire()
                         if self.taskQueue.size() <= Client.TASK_QUEUE_SIZE:
-                            data = {'policyIds': list(self.policys.keys())}
+                            data = {'policyIds': list(self.policys.keys()), 'processName': Client.PROCESS_NAME}
                             url = urljoin(Client.BASE_URL, './getTaskParams')
                             response = requests.post(url=url, data=data)
                             task_params = response.json()
