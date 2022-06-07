@@ -396,8 +396,8 @@ class NormalFetcher(Fetcher):
             self.logger.info(f'通用配置爬虫正在处理 policyId:{task.policyId}, Detail任务参数:{task.urlSign}')
             context = {}
             policyId = task.policyId
-            urlSign = json.loads(task.urlSign)
-            commonConfig = json.loads(task.companyName)
+            urlSign = task.urlSign
+            commonConfig = task.companyName
 
             context['policyId'] = policyId
             context['urlSign'] = urlSign
@@ -437,8 +437,8 @@ class NormalFetcher(Fetcher):
         # 上下文容器
         context = {}
         policyId = task.policyId
-        urlSign = json.loads(task.urlSign)
-        commonConfig = json.loads(task.companyName)
+        urlSign = task.urlSign
+        commonConfig = task.companyName
         urlTemp = commonConfig.get("url", "")
 
         context['policyId'] = policyId
@@ -454,8 +454,8 @@ class NormalFetcher(Fetcher):
         # 上下文容器
         context = {}
         policyId = task.policyId
-        urlSign = json.loads(task.urlSign)
-        commonConfig = json.loads(task.companyName)
+        urlSign = task.urlSign
+        commonConfig = task.companyName
         urlTemp = commonConfig.get("url", "")
 
         context['policyId'] = policyId
