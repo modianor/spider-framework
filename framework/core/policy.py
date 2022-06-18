@@ -27,7 +27,7 @@ class Policy(object):
         self.retryTimes = kwargs.get('retryTimes', 3)
         self.taskQueueSize = kwargs.get('taskQueueSize', 1)
         self.childThreadNum = kwargs.get('childThreadNum', 0)
-        self.taskTypesInfo = kwargs.get('taskTypesInfo', 'List|Detail|Data')  # List|Detail|Data
+        self.taskTypesInfo = kwargs.get('taskTypes', None)  # List|Detail|Data
         self.kwargs = kwargs
 
     @property

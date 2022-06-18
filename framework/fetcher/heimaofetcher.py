@@ -25,7 +25,7 @@ class HeiMaoFetcher(Fetcher):
 
     def getList(self, task: Task):
         try:
-            self.logger.info(f'List任务参数{task.companyName}')
+            self.logger.info(f'List任务 taskId:{task.taskId}, companyName:{task.companyName}')
             json_data = json.loads(task.companyName)
             type_ = json_data['type']
             page_size = json_data['page_size']
@@ -52,7 +52,7 @@ class HeiMaoFetcher(Fetcher):
 
     def getDetail(self, task: Task):
         try:
-            self.logger.info(f'Detail任务参数{task.urlSign}')
+            self.logger.info(f'Detail任务 taskId:{task.taskId}, urlSign:{task.urlSign}')
             json_data = json.loads(task.urlSign)
             url = json_data['url']
             content = list()
@@ -82,7 +82,7 @@ class HeiMaoFetcher(Fetcher):
 
     def getData(self, task: Task):
         try:
-            self.logger.info(f'Data任务参数{task.urlSign}')
+            self.logger.info(f'Data任务 taskId:{task.taskId}, urlSign:{task.urlSign}')
             json_data = json.loads(task.urlSign)
             sort_col = json_data['sort_col']
             sort_ord = json_data['sort_ord']

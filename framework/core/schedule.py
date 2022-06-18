@@ -49,10 +49,26 @@ class Scheduler(object):
                     try:
                         self.spiderLock.getTaskLock().acquire()
                         if self.taskQueue.size() <= Client.TASK_QUEUE_SIZE:
-                            data = {'policyIds': list(self.policys.keys()), 'processName': Client.PROCESS_NAME}
+                            policyIds = list()
+                            for policyId in self.policys:
+                                policy = self.policys[policyId]
+                                if policy is None:
+                                    continue
+                                if policy.taskTypesInfo is None or policy.taskTypesInfo == '':
+                                    continue
+                                taskParams = f'{policy.policyId}:{"|".join(policy.taskTypes)}'
+                                policyIds.append(taskParams)
+                            if len(policyIds) == 0:
+                                continue
+                            logger.info(f'正在尝试获取任务:{";".join(policyIds)}')
+                            data = {'policyIds': policyIds, 'processName': Client.PROCESS_NAME}
                             url = urljoin(Client.BASE_URL, './getTaskParams')
                             response = requests.post(url=url, data=data)
                             task_params = response.json()
+
+                            if len(task_params) == 0:
+                                time.sleep(Client.Fetch_Interval * 5)
+
                             for task_param in task_params:
                                 try:
                                     task = Task.fromJson(**task_param)
@@ -69,7 +85,7 @@ class Scheduler(object):
                         self.spiderLock.getTaskLock().release()
                 else:
                     self.logger.info('spider is pause, waiting to wake up')
-                    time.sleep(Client.Fetch_Wait_Interval)
+                    time.sleep(Client.Fetch_Wait_Interval * 5)
             except:
                 self.logger.error(f'Schedule获取任务错误, 错误原因:{traceback.format_exc()}')
                 time.sleep(Client.Fetch_Wait_Interval)
@@ -120,31 +136,20 @@ class Scheduler(object):
             # 每隔10分钟更新1次插件对应策略
             time.sleep(60 * 10)
 
-    def getHostInfo(self):
-        # 更新进程主机运行参数和策略对应处理的任务
-        # policy = Policy(policyId='HEIMAOTOUSU',
-        #                 proxy=0,
-        #                 interval=0,
-        #                 duplicate=None,
-        #                 taskQueueSize=1,
-        #                 timeout=60,
-        #                 retryTimes=3,
-        #                 taskTypesInfo='List|Detail|Data[1]'
-        #                 )
-        # self.updatePolicy(policy=policy)
-        pass
-
     def updatePolicy(self, policy: Policy):
         # 更新爬取策略
-        fetcher = self.policyFetchers[policy.policyId]
+        policyId = policy.policyId
+        self.policys[policyId] = policy
+        fetcher = self.policyFetchers[policyId]
         fetcher.setPolicy(policy)
 
     def initSchedule(self):
         t1 = Thread(target=self.getPolicyInfos, args=())
-        t2 = Thread(target=self.getHostInfo, args=())
+        # t2 = Thread(target=self.getHostInfo, args=())
         t3 = Thread(target=self.getTask, args=())
         t4 = Thread(target=self.handleTask, args=())
-        threads = [t1, t2, t3, t4]
+        # threads = [t1, t2, t3, t4]
+        threads = [t1, t3, t4]
 
         for t in threads:
             t.setDaemon(False)

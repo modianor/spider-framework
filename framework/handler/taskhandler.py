@@ -29,27 +29,32 @@ class FetcherThread(Thread):
 
     def __checkChildThreads__(self):
         if 'ParentThread' in self.threadName:
+            self.childThreadNum = self.fetcherInstance.policy.childThreadNum
             if len(self.childThreads) == self.childThreadNum:
                 pass
             elif len(self.childThreads) < self.childThreadNum:
                 # 需要添加子线程
                 deltaThreadNum = self.childThreadNum - len(self.childThreads)
-                for i in range(deltaThreadNum):
+                for i in range(len(self.childThreads), self.childThreadNum):
                     childThread = FetcherThread(policyId=self.policyId,
                                                 fetcherInstance=self.fetcherInstance,
                                                 policyTaskQueue=self.policyTaskQueue,
                                                 resultQueue=self.resultQueue,
                                                 threadName=f'{self.policyId}_ChildThread_{i + 1}')
                     self.childThreads.append(childThread)
-                for childThread in self.childThreads:
                     childThread.start()
+                    logger.warn(f'父线程{self.threadName}正在添加子线程{childThread.threadName}')
+                logger.warn(f'{[childThread.threadName for childThread in self.childThreads]}')
+
             else:
                 # 需要删除子线程
                 deltaThreadNum = len(self.childThreads) - self.childThreadNum
                 for i in range(deltaThreadNum):
                     childThread = self.childThreads[len(self.childThreads) - 1]
+                    logger.warn(f'父线程{self.threadName}正在删除子线程{childThread.threadName}')
                     self.childThreads.remove(childThread)
                     childThread.modifyClose()
+                logger.warn(f'{[childThread.threadName for childThread in self.childThreads]}')
 
     def run(self) -> None:
         while True:

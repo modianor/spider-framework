@@ -10,7 +10,6 @@ class SpiderHttpHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed_path = urlparse(self.path)
         request_path = parsed_path.path
-        print(request_path)
         try:
             if '/spider/start' in request_path:
                 self.start()
