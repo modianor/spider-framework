@@ -4,8 +4,9 @@ from logging import Logger
 from urllib.parse import urlencode
 
 import requests
+import urllib3
 from requests import Session
-
+urllib3.disable_warnings()
 
 class MyRequest(object):
     def __init__(self, session: Session, logger: Logger):
@@ -35,34 +36,48 @@ class MyRequest(object):
             if curRetryTime < retryTimes + 1:
                 try:
                     time.sleep(interval)
-                    if params is None or params == {}:
-                        self.logger.info(f'使用本地IP 访问GET[{url}] 开始')
-                    else:
-                        self.logger.info(f'使用本地IP 访问GET[{url + "?" + urlencode(params)}] 开始')
+
                     if method.upper() == 'GET':
                         if int(proxy) == 0:
                             response = requests.get(url=url, params=params or {}, headers=headers, timeout=timeout,
                                                     **kwargs)
+                            if params is None or params == {}:
+                                self.logger.info(f'使用本地IP 访问GET[{url}] 开始')
+                            else:
+                                self.logger.info(f'使用本地IP 访问GET[{url + "?" + urlencode(params)}] 开始')
                         elif int(proxy) == 1:
                             proxies = self.getProxy('')
                             response = requests.get(url=url, params=params or {}, headers=headers, timeout=timeout,
                                                     proxies=proxies, **kwargs)
+                            if params is None or params == {}:
+                                self.logger.info(f'使用代理IP 访问GET[{url}] 开始')
+                            else:
+                                self.logger.info(f'使用代理IP 访问GET[{url + "?" + urlencode(params)}] 开始')
 
                     elif method.upper() == 'POST':
                         if int(proxy) == 0:
                             response = requests.post(url=url, params=params or {}, data=data, headers=headers,
                                                      timeout=timeout, **kwargs)
+                            if data is None or data == {}:
+                                self.logger.info(f'使用本地IP 访问POST[{url}] 开始')
+                            else:
+                                self.logger.info(f'使用本地IP 访问POST[{url + "?" + urlencode(data)}] 开始')
                         elif int(proxy) == 1:
                             proxies = self.getProxy('')
                             response = requests.post(url=url, params=params or {}, data=data, headers=headers,
                                                      timeout=timeout, proxies=proxies, **kwargs)
-
+                            if data is None or data == {}:
+                                self.logger.info(f'使用代理IP 访问POST[{url}] 开始')
+                            else:
+                                self.logger.info(f'使用代理IP 访问POST[{url + "?" + urlencode(data)}] 开始')
                     statusCode = response.status_code
                     if method.upper() == 'GET':
                         if params is None or params == {}:
                             self.logger.info(f'GET [{url}] status_code:{statusCode}')
                         else:
                             self.logger.info(f'GET [{url + "?" + urlencode(params)}]  status_code:{statusCode}')
+                    elif method.upper() == 'POST':
+                        self.logger.info(f'POST [{url}] status_code:{statusCode}')
 
                     if curRetryTime + 1 == retryTimes:
                         return False, response

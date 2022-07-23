@@ -23,7 +23,7 @@ class Fetcher(object, metaclass=abc.ABCMeta):
         self.policy = policy
         self.policyId = policy.policyId
 
-    def getContent(self, url, params=None, data=None, headers=None, method='GET'):
+    def getContent(self, url, params=None, data=None, headers=None, method='GET', **kwargs):
         res, resp = self.myRequest.getContent(url=url,
                                               method=method,
                                               params=params,
@@ -32,7 +32,9 @@ class Fetcher(object, metaclass=abc.ABCMeta):
                                               timeout=self.policy.timeout,
                                               retryTimes=self.policy.retryTimes,
                                               interval=self.policy.interval,
-                                              proxy=self.policy.proxy)
+                                              proxy=self.policy.proxy,
+                                              verify=kwargs.get('verify', False),
+                                              **kwargs)
 
         return res, resp
 

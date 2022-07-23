@@ -28,6 +28,24 @@ def file2zip(zip_file_name: str, zip_file_dir: str):
             zf.write(join(zip_file_dir, fn), arcname=name)
 
 
+def createTaskHome(taskId, policyId):
+    task_data_dir = getTaskHomePath(taskId, policyId)
+    if not exists(path=task_data_dir):
+        os.makedirs(name=task_data_dir)
+
+
+def TaskHomeExist(taskId, policyId):
+    task_data_dir = getTaskHomePath(taskId, policyId)
+    return os.path.exists(task_data_dir)
+
+
+def getTaskHomePath(taskId, policyId):
+    dir_path = 'Data'
+    task_dir = f'{dir_path}/{policyId}'
+    task_data_dir = f'{task_dir}/{taskId}'
+    return task_data_dir
+
+
 def taskSerialize(task: Task, result: Tuple):
     taskStatus, items, _ = result
     policyId = task.policyId
@@ -45,8 +63,10 @@ def taskSerialize(task: Task, result: Tuple):
         for name in item:
             value = item[name]
             file_path = join(task_data_dir, name)
-            with open(file_path, 'w', encoding='utf-8') as f:
+            with open(file_path, 'wb') as f:
                 try:
+                    if isinstance(value, str):
+                        value = value.encode('utf-8')
                     f.write(value)
                 except:
                     print(traceback.format_exc())

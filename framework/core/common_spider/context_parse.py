@@ -12,15 +12,18 @@ def initContext(task: Task):
     context = {}
     policyId = task.policyId
     taskType = task.taskType
+    taskId = task.taskId
     urlSign = json.loads(task.urlSign)
     commonConfig = json.loads(task.companyName)
-    if taskType == 'List':
+    if taskType == 'List' or taskType == 'Data':
         urlTemp = commonConfig.get("url", "")
+        context['taskId'] = taskId
         context['policyId'] = policyId
         context['urlSign'] = urlSign
         context['config'] = commonConfig
-        context['urlTemp'] = urlTemp
-    elif taskType == 'Detail' or taskType == 'List':
+        context['urlTemplate'] = urlTemp
+    elif taskType == 'Detail':
+        context['taskId'] = taskId
         context['policyId'] = policyId
         context['urlSign'] = urlSign
         context['config'] = commonConfig
