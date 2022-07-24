@@ -10,6 +10,7 @@ from framework.core.common_spider.page_turn import PageTurner
 from framework.core.task import Task
 from framework.fetcher import Fetcher, FetcherStatus
 from framework.utils.log import Logger
+from framework.utils.params import getPolicy
 from framework.utils.request_util import MyRequest
 
 
@@ -27,11 +28,11 @@ class NormalFetcher(Fetcher):
         return Logger(policyId).getlog()
 
     def updatePolicy(self, task: Task):
-        # policys = getPolicy([task.policyId])
-        # for policy in policys:
-        #     self.myRequest.update(self.session, self.getCurrentLogger(policyId=policy.policyId.lower()))
-        #     self.setPolicy(policy=policy)
-        self.myRequest.update(self.session, self.getCurrentLogger(policyId=task.policyId.lower()))
+        policys = getPolicy([task.policyId])
+        for policy in policys:
+            self.myRequest.update(self.session, self.getCurrentLogger(policyId=policy.policyId.lower()))
+            self.setPolicy(policy=policy)
+        # self.myRequest.update(self.session, self.getCurrentLogger(policyId=task.policyId.lower()))
 
     def getDetail(self, task: Task):
         try:
@@ -82,7 +83,7 @@ class NormalFetcher(Fetcher):
             for param in params:
                 content.append([json.dumps(param, ensure_ascii=False), '', '', f'{policyId}|Detail'])
 
-            kibana_log = f'List任务 taskId:{task.taskId}, policyId:{task.policyId} 成功, 生成{content}个Detail任务'
+            kibana_log = f'List任务 taskId:{task.taskId}, policyId:{task.policyId} 成功, 生成{len(content)}个Detail任务'
             self.getCurrentLogger(task.policyId.lower()).info(kibana_log)
             return FetcherStatus.SUCCESS, json.dumps(content, ensure_ascii=False,
                                                      sort_keys=True), kibana_log
@@ -99,7 +100,7 @@ class NormalFetcher(Fetcher):
             # 上下文容器
             context = initContext(task=task)
             params = PageTurner(self.getContent).turnPage(context, configType='data')
-            kibana_log = f'Data任务 taskId:{task.taskId}, policyId:{task.policyId} 成功, 生成{params}个Data任务'
+            kibana_log = f'Data任务 taskId:{task.taskId}, policyId:{task.policyId} 成功, 生成{len(params)}个Data任务'
             self.getCurrentLogger(task.policyId.lower()).info(kibana_log)
             return FetcherStatus.SUCCESS, json.dumps(params, ensure_ascii=False,
                                                      sort_keys=True), kibana_log

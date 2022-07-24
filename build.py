@@ -12,5 +12,5 @@ def copy_function(src, target):
 
 
 run(pyi_args=['build.spec'])
-copy_function(r'./client.ini', r'./dist/client.ini')
-copy_function(r'./plugins.ini', r'./dist/plugins.ini')
+copy_function(r'framework/client.ini', r'./dist/client.ini')
+copy_function(r'framework/plugins.ini', r'./dist/plugins.ini')

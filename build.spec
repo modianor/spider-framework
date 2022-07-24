@@ -2,13 +2,13 @@
 
 block_cipher = None
 
-a = Analysis(['start_spider.py'],
+a = Analysis(['framework/start_spider.py'],
              pathex=[],
              binaries=[],
              datas=[],
-             hiddenimports=['fetcher.heimaofetcher',
-                            'fetcher.xueqiufetcher',
-                            'fetcher.normalfetcher'
+             hiddenimports=['framework.fetcher.heimaofetcher',
+                            'framework.fetcher.xueqiufetcher',
+                            'framework.core.common_spider.fetcher'
                             ],
              hookspath=[],
              hooksconfig={},

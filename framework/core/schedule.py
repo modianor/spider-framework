@@ -54,7 +54,7 @@ class Scheduler(object):
                                 policy = self.policys[policyId]
                                 if policy is None:
                                     continue
-                                if policy.taskTypesInfo is None or policy.taskTypesInfo == '':
+                                if (policy.taskTypesInfo is None or policy.taskTypesInfo == '') and policy.policyId != 'NORMAL':
                                     continue
                                 taskParams = f'{policy.policyId}:{"|".join(policy.taskTypes)}'
                                 policyIds.append(taskParams)
