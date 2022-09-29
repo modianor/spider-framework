@@ -97,7 +97,7 @@ class FieldParser:
         config = context.get('config')
         if configType in config:
             listConfig = config.get(configType, {})
-            listParseConfig = listConfig.get('listParse', {})
+            listParseConfig = listConfig.get(f'{configType}Parse', {})
             for field in listParseConfig:
                 # 每个字段解析的规则
                 fieldParseRules = listParseConfig[field]

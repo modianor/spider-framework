@@ -54,29 +54,30 @@ class Scheduler(object):
                                 policy = self.policys[policyId]
                                 if policy is None:
                                     continue
-                                if (policy.taskTypesInfo is None or policy.taskTypesInfo == '') and policy.policyId != 'NORMAL':
+                                if (
+                                        policy.taskTypesInfo is None or policy.taskTypesInfo == '') \
+                                        and policy.policyId != 'NORMAL':
                                     continue
                                 taskParams = f'{policy.policyId}:{"|".join(policy.taskTypes)}'
                                 policyIds.append(taskParams)
                             if len(policyIds) == 0:
                                 continue
-                            logger.info(f'正在尝试获取任务:{";".join(policyIds)}')
+                            self.logger.info(f'正在尝试获取任务:{";".join(policyIds)}')
                             data = {'policyIds': policyIds, 'processName': Client.PROCESS_NAME}
                             url = urljoin(Client.BASE_URL, './getTaskParams')
                             response = requests.post(url=url, data=data)
                             task_params = response.json()
 
                             if len(task_params) == 0:
-                                time.sleep(Client.Fetch_Interval * 5)
+                                self.logger.warning("爬虫进程获取任务为空")
+                                time.sleep(Client.Fetch_Interval * 50)
 
                             for task_param in task_params:
                                 try:
                                     task = Task.fromJson(**task_param)
                                     self.taskQueue.putTask(task)
                                 except TypeError:
-                                    pass
-                                    # self.logger.warning('任务为空，爬虫进程继续等待任务')
-                            time.sleep(Client.Fetch_Interval)
+                                    self.logger.warning('爬虫进程反序列化任务出错')
                         else:
                             time.sleep(Client.Fetch_Wait_Interval)
                     except:

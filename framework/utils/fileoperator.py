@@ -46,15 +46,22 @@ def getTaskHomePath(taskId, policyId):
     return task_data_dir
 
 
+def getZipPath(taskId, policyId):
+    dir_path = 'Data'
+    task_dir = f'{dir_path}/{policyId}'
+    zip_name = join(task_dir, f'{taskId}.zip')
+    return zip_name
+
+
 def taskSerialize(task: Task, result: Tuple):
     taskStatus, items, _ = result
     policyId = task.policyId
     dir_path = 'Data'
-    task_id = task.taskId
+    taskId = task.taskId
 
     task_dir = f'{dir_path}/{policyId}'
-    task_data_dir = f'{task_dir}/{task_id}'
-    zip_name = join(task_dir, f'{task_id}.zip')
+    task_data_dir = f'{task_dir}/{taskId}'
+    zip_name = join(task_dir, f'{taskId}.zip')
 
     if not exists(path=task_data_dir):
         os.makedirs(name=task_data_dir)

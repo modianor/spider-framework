@@ -16,47 +16,39 @@ if __name__ == '__main__':
     companyName = {
         "headers": {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36",
-            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-            # "Content-Type": "application/json"
         },
-        "url": "https://www.mohurd.gov.cn/document/search@@q=&t=&c=&on=&odds=&odde=&oc=&tc=&orc=&sc=&bt=2&lt=1&pageSize=30&currentPageNum={pageNums}@@",
-        "list": {
+        "url": "http://hbj.jiyuan.gov.cn/zcfg/xzcf/index_{pageNums}.html",
+        "data": {
             "pageParse": {
                 "autoPage": True,
+                "diff": 0.995,
                 "pageEnd": 3
             },
-            "listParse": {
+            "dataParse": {
                 "title": {
-                    "jsonpath": "$.data.list[*].title"
+                    "xpath": "//ul/li/a[contains(text(),'环罚')]/text()"
                 },
                 "date": {
-                    "jsonpath": "$.data.list[*].ofDispatchDate"
+                    "xpath": "//ul/li/a[contains(text(),'环罚')]/preceding-sibling::span/text()"
                 },
                 "url": {
-                    "jsonpath": "$.data.list[*].url"
+                    "xpath": "//ul/li/a[contains(text(),'环罚')]/@href"
                 }
-            },
-            "filterExpre": ""
-        },
-        "detail": {
-            "down": {
-                # "main": "*",
-                # "file": {
-                #     "xpath": "//a//*[contains(text(),'.doc') or contains(text(),'.pdf') or contains(text(),'.xls') or contains(text(),'.xlsx') or contains(text(),'.rar') or contains(text(),'.zip') or contains(text(),'.xlsx') or contains(text(),'.7z')]/parent::a/@href|//a[contains(text(),'.doc') or contains(text(),'.docx') or contains(text(),'.pdf') or contains(text(),'.xls') or contains(@href,'.doc') or contains(@href,'.pdf') or contains(@href,'.xls') or contains(@href,'.rar') or contains(@href,'.zip') or contains(@href,'.xlsx') or contains(@href,'.7z')]/@href|//img[contains(@src,'/picture')]/@src"
-                # }
             },
             "filterExpre": ""
         }
     }
+
     print(json.dumps(companyName, ensure_ascii=False))
     urlSign = {
+        'url': 'http://hbj.jiyuan.gov.cn/zcfg/xzcf/index.html'
     }
 
     task = Task(policyId=policyId,
-                taskType='List',
+                taskType='Data',
                 urlSign=json.dumps(urlSign, ensure_ascii=False),
                 companyName=json.dumps(companyName, ensure_ascii=False))
-    result = fetcher.getList(task)
+    result = fetcher.getData(task)
     print(result)
 
     params_json = result[1]

@@ -99,7 +99,7 @@ class PageTurner:
         # 全局请求encoding
         encoding = config.get("encoding", 'utf-8')
         # list任务配置
-        listConfig = config.get('list', {})
+        listConfig = config.get(configType, {})
         # 翻页解析配置
         pageParseConfig = listConfig.get("pageParse", {})
         # 翻页起始页第一页

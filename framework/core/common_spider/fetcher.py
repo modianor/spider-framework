@@ -28,11 +28,14 @@ class NormalFetcher(Fetcher):
         return Logger(policyId).getlog()
 
     def updatePolicy(self, task: Task):
-        policys = getPolicy([task.policyId])
-        for policy in policys:
-            self.myRequest.update(self.session, self.getCurrentLogger(policyId=policy.policyId.lower()))
-            self.setPolicy(policy=policy)
-        # self.myRequest.update(self.session, self.getCurrentLogger(policyId=task.policyId.lower()))
+        try:
+            policys = getPolicy([task.policyId])
+            for policy in policys:
+                self.myRequest.update(self.session, self.getCurrentLogger(policyId=policy.policyId.lower()))
+                self.setPolicy(policy=policy)
+        except:
+            self.logger.warn('通用配置爬虫可能正在进行离线测试,若云主机环境出现此提示,表明通用配置爬虫无法获取在线策略配置')
+        self.myRequest.update(self.session, self.getCurrentLogger(policyId=task.policyId.lower()))
 
     def getDetail(self, task: Task):
         try:
