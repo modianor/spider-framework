@@ -2,15 +2,12 @@ import time
 import traceback
 from threading import Thread
 from typing import Dict
-from urllib.parse import urljoin
-
-import requests
 
 from framework.config import Client, Plugins
 from framework.core import logger, status
 from framework.core.lock import SpiderLock
 from framework.core.policy import Policy
-from framework.core.task import Task
+from framework.core.taskloader import TaskLoader
 from framework.fetcher import Fetcher
 from framework.handler.resulthandler import ResultHandler
 from framework.handler.taskhandler import TaskHandler
@@ -40,6 +37,8 @@ class Scheduler(object):
         self.loadFetchers()
         # 爬虫进程持有锁的对象
         self.spiderLock = SpiderLock()
+        # 爬虫进程任务加载器
+        self.taskLoader = TaskLoader()
 
     def getTask(self):
         self.logger.info('GetTask Thread start')
@@ -48,38 +47,9 @@ class Scheduler(object):
                 if status.run:
                     try:
                         self.spiderLock.getTaskLock().acquire()
-                        if self.taskQueue.size() <= Client.TASK_QUEUE_SIZE:
-                            policyIds = list()
-                            for policyId in self.policys:
-                                policy = self.policys[policyId]
-                                if policy is None:
-                                    continue
-                                if (
-                                        policy.taskTypesInfo is None or policy.taskTypesInfo == '') \
-                                        and policy.policyId != 'NORMAL':
-                                    continue
-                                taskParams = f'{policy.policyId}:{"|".join(policy.taskTypes)}'
-                                policyIds.append(taskParams)
-                            if len(policyIds) == 0:
-                                continue
-                            self.logger.info(f'正在尝试获取任务:{";".join(policyIds)}')
-                            data = {'policyIds': policyIds, 'processName': Client.PROCESS_NAME}
-                            url = urljoin(Client.BASE_URL, './getTaskParams')
-                            response = requests.post(url=url, data=data)
-                            task_params = response.json()
-
-                            if len(task_params) == 0:
-                                self.logger.warning("爬虫进程获取任务为空")
-                                time.sleep(Client.Fetch_Interval * 50)
-
-                            for task_param in task_params:
-                                try:
-                                    task = Task.fromJson(**task_param)
-                                    self.taskQueue.putTask(task)
-                                except TypeError:
-                                    self.logger.warning('爬虫进程反序列化任务出错')
-                        else:
-                            time.sleep(Client.Fetch_Wait_Interval)
+                        self.taskLoader.updatePolicies(self.policys)
+                        self.taskLoader.supplyPolicyTasks()
+                        time.sleep(Client.Fetch_Interval)
                     except:
                         pass
                     finally:
@@ -94,28 +64,10 @@ class Scheduler(object):
     def handleTask(self):
         try:
             self.logger.info('HandleTask Thread start')
-            self.taskHandler = TaskHandler(policyFetchers=self.policyFetchers, resultQueue=self.resultQueue)
-            self.resultHandler = ResultHandler(resultQueue=self.resultQueue)
+            self.resultHandler = ResultHandler()
+            self.taskHandler = TaskHandler(policyFetchers=self.policyFetchers)
         except:
             self.logger.error(f'Schedule初始化TaskHandle和ResultHandle失败, 错误原因:{traceback.format_exc()}')
-
-        while True:
-            try:
-                self.spiderLock.getTaskLock().acquire()
-                if not self.taskQueue.isEmpty():
-                    # 任务队列不为空，尝试处理任务
-                    task = self.taskQueue.getTask()
-                    handleStatus = self.taskHandler.handle(task)
-                    if not handleStatus:
-                        self.taskQueue.putTask(task)
-                else:
-                    # 任务队列为空，等待新的任务进入任务队列
-                    time.sleep(Client.Handle_Task_Wait_Interval)
-            except:
-                self.logger.error(f'Schedule处理任务错误, 错误原因:{traceback.format_exc()}')
-                time.sleep(Client.Handle_Task_Wait_Interval * 5)
-            finally:
-                self.spiderLock.getTaskLock().release()
 
     def loadFetchers(self):
         plugins: Dict = Plugins.plugins

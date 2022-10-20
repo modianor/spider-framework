@@ -35,10 +35,10 @@ class ResultProcess(object):
 
 class ResultThread(Thread):
 
-    def __init__(self, resultProcess: ResultProcess, resultQueue: ResultQueue, threadName: str, **kwds):
+    def __init__(self, resultProcess: ResultProcess, threadName: str, **kwds):
         Thread.__init__(self, **kwds)
         self.resultProcess = resultProcess
-        self.resultQueue = resultQueue
+        self.resultQueue = ResultQueue()
         self.threadName = threadName
         self.parentThread = None
         self.close = False
@@ -52,7 +52,7 @@ class ResultThread(Thread):
                 deltaThreadNum = self.childThreadNum - len(self.childThreads)
                 for i in range(deltaThreadNum):
                     childThread = ResultThread(self.resultProcess,
-                                               self.resultQueue,
+                                               # self.resultQueue,
                                                f'{self.threadName}_ChildThread_{i + 1}'
                                                )
                     self.childThreads.append(childThread)
@@ -89,19 +89,16 @@ class ResultThread(Thread):
 
 @Singleton
 class ResultHandler(BaseHandler):
-    def __init__(self, resultQueue: ResultQueue) -> None:
+    def __init__(self) -> None:
         self.policyHandler: List[ResultThread] = list()
-        self.resultQueue = resultQueue
+        self.resultQueue = ResultQueue()
         self.resultProcess = ResultProcess()
         self.resultProcessThread = None
         self.createHandlerProcess()
 
     def createHandlerProcess(self):
         self.resultProcessThread = ResultThread(resultProcess=self.resultProcess,
-                                                resultQueue=self.resultQueue,
+                                                # resultQueue=self.resultQueue,
                                                 threadName='ResultHandler'
                                                 )
         self.resultProcessThread.start()
-
-    def handle(self, result):
-        pass

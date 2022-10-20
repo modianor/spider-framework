@@ -4,27 +4,28 @@ from threading import Thread
 from typing import Dict, List
 
 from framework.core import logger
-from framework.core.task import Task
+from framework.core.taskloader import TaskLoader
 from framework.fetcher import Fetcher
 from framework.handler import BaseHandler
 from framework.utils.single import Singleton
-from framework.utils.spiderqueue import TaskQueue, ResultQueue
+from framework.utils.spiderqueue import ResultQueue
 
 
 class FetcherThread(Thread):
 
-    def __init__(self, policyId, fetcherInstance: Fetcher, policyTaskQueue: TaskQueue, resultQueue: ResultQueue,
-                 threadName: str, **kwds):
+    def __init__(self, policyId, fetcherInstance: Fetcher, threadName: str, **kwds):
         Thread.__init__(self, **kwds)
         self.policyId = policyId
         self.close = False
         self.fetcherInstance = fetcherInstance
-        self.policyTaskQueue = policyTaskQueue
-        self.resultQueue = resultQueue
+        # self.policyTaskQueue = policyTaskQueue
+        self.resultQueue = ResultQueue()
         self.threadName = threadName
         self.parentThread = None
         self.childThreadNum = 0
         self.childThreads: List[FetcherThread] = list()
+        # 爬虫进程任务加载器
+        self.taskLoader = TaskLoader()
         logger.info(f'{self.threadName} start')
 
     def __checkChildThreads__(self):
@@ -41,8 +42,8 @@ class FetcherThread(Thread):
                 for i in range(len(self.childThreads), self.childThreadNum):
                     childThread = FetcherThread(policyId=self.policyId,
                                                 fetcherInstance=self.fetcherInstance,
-                                                policyTaskQueue=self.policyTaskQueue,
-                                                resultQueue=self.resultQueue,
+                                                # policyTaskQueue=self.policyTaskQueue,
+                                                # resultQueue=self.resultQueue,
                                                 threadName=f'{self.policyId}_ChildThread_{i + 1}')
                     self.childThreads.append(childThread)
                     childThread.start()
@@ -63,11 +64,10 @@ class FetcherThread(Thread):
         while True:
             if not self.close:
                 self.__checkChildThreads__()
-                if not self.policyTaskQueue.isEmpty():
-                    # logger.info(f'{self.threadName} handler a task')
-                    try:
-                        # 这里任务可能是通用插件任务，也有可能是通用配置任务，个人觉得通用配置爬虫需要单独占用一个进程
-                        task = self.policyTaskQueue.getTask()
+                try:
+                    # 这里任务可能是通用插件任务，也有可能是通用配置任务，个人觉得通用配置爬虫需要单独占用一个进程
+                    task = self.taskLoader.getTaskByPolicyId(self.policyId)
+                    if task is not None:
                         result = None
                         taskType = task.taskType
                         if taskType == 'List':
@@ -80,10 +80,10 @@ class FetcherThread(Thread):
                             # (taskStatus,{k1:v1, k2:v2, k3:v3}],kibanalog)
                             result = self.fetcherInstance.getData(task)
                         self.resultQueue.putResult((task, result))
-                    except:
-                        logger.error(traceback.format_exc())
-                else:
-                    time.sleep(1)
+                    else:
+                        time.sleep(1)
+                except:
+                    logger.error(traceback.format_exc())
             else:
                 logger.warning(f'{self.threadName} release')
                 break
@@ -94,43 +94,29 @@ class FetcherThread(Thread):
 
 @Singleton
 class TaskHandler(BaseHandler):
-    def __init__(self, policyFetchers: Dict[str, Fetcher], resultQueue: ResultQueue) -> None:
+    def __init__(self, policyFetchers: Dict[str, Fetcher]) -> None:
         # 业务策略Handler
         self.policyHandler: Dict[str, FetcherThread] = dict()
         # 业务策略任务队列
-        self.policyTaskQueues: Dict[str, TaskQueue] = dict()
+        # self.policyTaskQueues: Dict[str, TaskQueue] = dict()
         # 业务策略Fetcher
         self.policyFetchers: Dict[str, Fetcher] = policyFetchers
         # 业务策略结果队列
-        self.resultQueue = resultQueue
+        # self.resultQueue = resultQueue
         # 创建业务Handle线程
         self.createHandlerProcess()
 
     def createHandlerProcess(self):
         for policyId in self.policyFetchers:
-            taskQueue = TaskQueue()
+            # taskQueue = TaskQueue()
             fetcher = self.policyFetchers[policyId]
-            self.policyTaskQueues[policyId] = taskQueue
+            # self.policyTaskQueues[policyId] = taskQueue
             self.policyHandler[policyId] = FetcherThread(policyId=policyId,
                                                          fetcherInstance=fetcher,
-                                                         policyTaskQueue=taskQueue,
-                                                         resultQueue=self.resultQueue,
+                                                         # policyTaskQueue=taskQueue,
+                                                         # resultQueue=self.resultQueue,
                                                          threadName=f'{policyId}_ParentThread')
 
         for policyId in self.policyHandler:
             policyIdThread = self.policyHandler[policyId]
             policyIdThread.start()
-
-    def handle(self, task: Task):
-        policyId = task.policyId
-        policyMode = task.policyMode
-        if policyMode == 'config':
-            policyId = 'NORMAL'
-        policyTaskQueue = self.policyTaskQueues[policyId]
-        fetcher = self.policyFetchers[policyId]
-        if policyTaskQueue.size() < fetcher.policy.taskQueueSize:
-            self.policyTaskQueues[policyId].putTask(task)
-            return True
-        else:
-            # self.logger.warning(f'policyId:{policyId} policyTaskQueue is full')
-            return False

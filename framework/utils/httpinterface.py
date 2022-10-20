@@ -1,3 +1,4 @@
+import json
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse
 
@@ -10,19 +11,21 @@ class SpiderHttpHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed_path = urlparse(self.path)
         request_path = parsed_path.path
+        output = {'success': False, 'status': False}
+
         try:
             if '/spider/start' in request_path:
-                self.start()
+                output = self.start()
 
             if '/spider/stop' in request_path:
-                self.pause()
+                output = self.pause()
         except:
             pass
 
         self.send_response(200)
         self.send_header("Content-type", "text-html")
         self.end_headers()
-        output = "ok"
+        output = json.dumps(output, ensure_ascii=False)
         self.wfile.write(output.encode())
         return
 
