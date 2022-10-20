@@ -29,7 +29,10 @@ class FetcherThread(Thread):
 
     def __checkChildThreads__(self):
         if 'ParentThread' in self.threadName:
-            self.childThreadNum = self.fetcherInstance.policy.childThreadNum
+            try:
+                self.childThreadNum = self.fetcherInstance.policy.childThreadNum
+            except:
+                self.childThreadNum = 0
             if len(self.childThreads) == self.childThreadNum:
                 pass
             elif len(self.childThreads) < self.childThreadNum:
