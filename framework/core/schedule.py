@@ -49,7 +49,6 @@ class Scheduler(object):
                         self.spiderLock.getTaskLock().acquire()
                         self.taskLoader.updatePolicies(self.policys)
                         self.taskLoader.supplyPolicyTasks()
-                        time.sleep(Client.Fetch_Interval)
                     except:
                         pass
                     finally:

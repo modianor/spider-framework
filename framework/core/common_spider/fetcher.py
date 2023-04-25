@@ -111,3 +111,14 @@ class NormalFetcher(Fetcher):
             kibana_log = f'Data任务 taskId:{task.taskId}, policyId:{task.policyId} 处理错误，错误原因:{traceback.format_exc()}'
             self.getCurrentLogger(task.policyId.lower()).error(kibana_log)
             return FetcherStatus.FAIL, '', kibana_log
+
+
+class NormalBrowserFetcher(Fetcher):
+    def getList(self, task: Task):
+        pass
+
+    def getDetail(self, task: Task):
+        pass
+
+    def getData(self, task: Task):
+        pass

@@ -14,6 +14,7 @@ if __name__ == '__main__':
     fetcher.setPolicy(policy)
 
     companyName = {
+        "normal": True,
         "headers": {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36",
         },
@@ -58,7 +59,7 @@ if __name__ == '__main__':
             taskId=random.randint(100000000, 999999999),
             policyId=policyId,
             taskType='Detail',
-            urlSign=param[0],
+            urlSign=json.dumps(param, ensure_ascii=False),
             companyName=json.dumps(companyName, ensure_ascii=False)
         )
         result = fetcher.getDetail(task)

@@ -69,6 +69,7 @@ class TaskLoader(object):
             if len(task_params) == 0:
                 self.logger.warning("爬虫进程获取任务为空")
                 time.sleep(Client.Fetch_Interval * 5)
+                return
 
             for task_param in task_params:
                 try:
@@ -80,6 +81,7 @@ class TaskLoader(object):
                     self.taskSlot[policyId] = task
                 except TypeError:
                     self.logger.warning('爬虫进程反序列化任务出错')
+            time.sleep(Client.Fetch_Interval)
         except:
             self.logger.error('spider taskloader fail to get tasks ...')
 

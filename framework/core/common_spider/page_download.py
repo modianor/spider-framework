@@ -5,6 +5,7 @@ from urllib.parse import parse_qs
 
 from framework.core.common_spider.text_parse import FieldParser
 from framework.utils.fileoperator import createTaskHome, TaskHomeExist, getTaskHomePath
+from framework.utils.webdriver_util import WebDriverUtil
 
 url_sign = ['doc', 'docx', 'pdf', 'xls', 'xlsx', 'rar', 'prn', 'dot', 'wbk', 'rtf', 'txt', 'png', 'jpg',
             'jpeg', 'gif', 'bmp', 'zip', 'wps', 'et', 'tif', 'tiff', 'swf']
@@ -53,6 +54,54 @@ class PageDownloader:
 
     @staticmethod
     def downloadFile(getContent, url, context):
+        config = context.get('config', {})
+        normal = config.get("normal", False)
+        res, resp = False, None
+        if normal:
+            res, resp = PageDownloader.downloadFileByChrome(None, url, context)
+            return res, resp
+        else:
+            res, resp = PageDownloader.downloadFileByRequests(getContent, url, context)
+            return res, resp
+
+    @staticmethod
+    def downloadFileByChrome(getContent, url, context):
+        config = context.get('config', {})
+        policyId = context['policyId']
+        headers = config.get('headers', {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36"
+        })
+
+        WebDriverUtil.openWebDriver(policyId=policyId)
+        method = 'GET'
+        post_param = {}
+        contentType = headers.get("Content-Type", "")
+        matcher = re.search('(@@.*?@@)', url)
+        if matcher:
+            post_param_str = matcher.group(1)
+            if post_param_str:
+                method = 'POST'
+                query = post_param_str[2:-2]
+                params = parse_qs(query)
+                post_param = {key: params[key][0] for key in params}
+                url = url.replace(post_param_str, '')
+
+        res, resp = False, None
+        if method == 'GET':
+            res, resp = getContent(url, method=method, headers=headers)
+        elif method == 'POST':
+            if contentType == '' or contentType == None:
+                contentType = 'application/x-www-form-urlencoded; charset=UTF-8'
+
+            if contentType == 'application/json':
+                res, resp = getContent(url, method=method, data=json.dumps(post_param),
+                                       headers=headers)
+            else:
+                res, resp = getContent(url, method=method, data=post_param, headers=headers)
+        return res, resp
+
+    @staticmethod
+    def downloadFileByRequests(getContent, url, context):
         config = context.get('config', {})
         headers = config.get('headers', {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36"
